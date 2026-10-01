@@ -6,6 +6,7 @@ import {
 } from "./fetchClient";
 import { API_BASE } from "./config";
 import { ApiError } from "./errors";
+import { responseRequestId } from "./requestId";
 import type { SessionVisibility, InAppNotificationPrefs } from "./profile";
 import type { BillingStore } from "./activityBilling";
 
@@ -133,11 +134,13 @@ export async function uploadProfileAvatar(
 
   if (!res.ok) {
     let message = "Avatar upload failed";
+    let body: unknown;
     try {
       const text = await res.text();
       if (text) {
         try {
-          const json = JSON.parse(text);
+          const json = JSON.parse(text) as { message?: string; error?: string };
+          body = json;
           message = json.message ?? json.error ?? message;
         } catch {
           message = text;
@@ -147,12 +150,24 @@ export async function uploadProfileAvatar(
       // ignore parse error, keep default message
     }
     await notifyAuthExpired(false, res.status);
-    throw new ApiError(res.status, message);
+    throw new ApiError(
+      res.status,
+      message,
+      undefined,
+      undefined,
+      responseRequestId(res.headers.get("x-request-id"), body),
+    );
   }
 
   const data = (await res.json()) as UploadProfileAvatarResponse;
   if (!data?.avatarUrl) {
-    throw new ApiError(500, "No avatar URL in response");
+    throw new ApiError(
+      500,
+      "No avatar URL in response",
+      undefined,
+      undefined,
+      responseRequestId(res.headers.get("x-request-id"), data),
+    );
   }
   return data;
 }

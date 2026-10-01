@@ -9,7 +9,7 @@ import {
   postAdminAuthSessionsRecomputeRisk,
   type AdminAuthSessionDetailRow,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -133,7 +133,7 @@ export function AdminUserWebSessionsSection({
     },
     onError: (e: unknown) => {
       toast.error(
-        e instanceof ApiError ? e.message : "Could not complete action.",
+        apiErrorText(e, "Could not complete action."),
       );
     },
   });
@@ -155,7 +155,7 @@ export function AdminUserWebSessionsSection({
     },
     onError: (e: unknown) => {
       toast.error(
-        e instanceof ApiError ? e.message : "Could not revoke sessions.",
+        apiErrorText(e, "Could not revoke sessions."),
       );
     },
   });
@@ -178,7 +178,7 @@ export function AdminUserWebSessionsSection({
     },
     onError: (e: unknown) => {
       toast.error(
-        e instanceof ApiError ? e.message : "Could not delete sessions.",
+        apiErrorText(e, "Could not delete sessions."),
       );
     },
   });
@@ -197,7 +197,7 @@ export function AdminUserWebSessionsSection({
     },
     onError: (e: unknown) => {
       toast.error(
-        e instanceof ApiError ? e.message : "Could not recompute risk.",
+        apiErrorText(e, "Could not recompute risk."),
       );
     },
   });
@@ -565,9 +565,7 @@ export function AdminUserWebSessionsSection({
     </div>
   ) : detailQuery.isError ? (
     <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-      {detailQuery.error instanceof ApiError
-        ? detailQuery.error.message
-        : "Could not load sessions."}
+      {apiErrorText(detailQuery.error, "Could not load sessions.")}
     </div>
   ) : (
     <>

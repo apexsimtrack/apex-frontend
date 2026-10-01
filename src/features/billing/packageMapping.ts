@@ -14,6 +14,22 @@ function packageIdentifier(rcPackage: BillingPackage): string {
   return rcPackage.identifier?.trim().toLowerCase() ?? "";
 }
 
+function matchesNativeProductId(
+  rcPackage: BillingPackage,
+  platform: Exclude<StoreBillingPlatform, "web">,
+  interval: BillingInterval,
+): boolean {
+  const actual =
+    platform === "play"
+      ? rcPackage.productIdentifier.split(":", 1)[0]
+      : rcPackage.productIdentifier;
+  const expected = proProductId(
+    platform,
+    interval === "MONTHLY" ? "monthly" : "annual",
+  );
+  return actual === expected;
+}
+
 /** Store SKUs (Apple vs Play) live in `storeProductIds.ts`. */
 export function isAnnualPackage(rcPackage: BillingPackage): boolean {
   const id =
@@ -35,11 +51,11 @@ export function resolvePackagesByInterval(
     return {
       monthly:
         availablePackages.find(
-          (pkg) => pkg.productIdentifier === proProductId(platform, "monthly"),
+          (pkg) => matchesNativeProductId(pkg, platform, "MONTHLY"),
         ) ?? null,
       annual:
         availablePackages.find(
-          (pkg) => pkg.productIdentifier === proProductId(platform, "annual"),
+          (pkg) => matchesNativeProductId(pkg, platform, "ANNUAL"),
         ) ?? null,
     };
   }

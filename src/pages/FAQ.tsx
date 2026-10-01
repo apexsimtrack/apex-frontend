@@ -27,12 +27,8 @@ import {
   groupFaqByCategory,
   type FaqItem,
 } from "@/lib/faqData";
-import { COMPANY_NAME } from "@/lib/siteMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { cn } from "@/lib/utils";
-
-const FAQ_PATH = "/faq";
-const title = `Frequently Asked Questions | ${COMPANY_NAME}`;
-const description = `Answers about ${COMPANY_NAME}, sessions, Apex Pro, and your account.`;
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   General: Info,
@@ -77,7 +73,12 @@ export default function FAQ() {
 
   return (
     <>
-      <PageMeta title={title} description={description} path={FAQ_PATH} />
+      <PageMeta
+        title={STATIC_SEO.faq.title}
+        description={STATIC_SEO.faq.description}
+        path={STATIC_SEO.faq.path}
+        jsonLd={STATIC_SEO.faq.jsonLd}
+      />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col space-y-8 px-6 py-8">
         <section className="mb-1">
           <h1 className="font-apex-headline text-3xl font-bold tracking-tight text-apex-on-surface">

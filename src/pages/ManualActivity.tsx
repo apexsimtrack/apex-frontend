@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, Trophy, Upload as UploadIcon } from "lucide-react";
-import { createManualActivity, getChallenge, ApiError } from "@/lib/api";
+import { apiErrorText, createManualActivity, getChallenge, ApiError } from "@/lib/api";
 import type { ManualActivityRequest } from "@/lib/api";
 import type { ManualActivityInitialData } from "@/components/ManualActivityForm";
 import PageMeta from "@/components/PageMeta";
@@ -96,9 +96,7 @@ export default function ManualActivity() {
       }, 1000);
     } catch (err) {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : "Failed to create activity. Please try again.";
+        apiErrorText(err, "Failed to create activity. Please try again.");
       setErrorMessage(message);
       setFormState("error");
     }

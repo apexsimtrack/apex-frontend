@@ -1,12 +1,9 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import PageMeta from "@/components/PageMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { COMPANY_NAME, SITE_ORIGIN } from "@/lib/siteMeta";
 import { SUPPORT_EMAIL } from "@/lib/appConfig";
-
-const COOKIE_PATH = "/cookie-policy";
-const title = `Cookie & Storage Policy | ${COMPANY_NAME}`;
-const description = `How ${COMPANY_NAME} uses browser local storage, session storage, and similar technologies.`;
 
 const linkClassName =
   "text-apex-primary transition-colors hover:text-apex-primary/80";
@@ -189,7 +186,11 @@ function StorageKeyTable({ rows }: { rows: StorageKeyRow[] }) {
 export default function CookiePolicy() {
   return (
     <>
-      <PageMeta title={title} description={description} path={COOKIE_PATH} />
+      <PageMeta
+        title={STATIC_SEO.cookies.title}
+        description={STATIC_SEO.cookies.description}
+        path={STATIC_SEO.cookies.path}
+      />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">
         <article className="mx-auto w-full max-w-3xl">
           <header className="mb-10 border-b border-apex-outline-variant/15 pb-8">

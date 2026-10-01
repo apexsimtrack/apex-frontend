@@ -6,6 +6,7 @@ import { AppBaseModal } from "@/components/app-ui/AppBaseModal";
 import { RaceHistoryPagination } from "@/components/RaceHistoryPagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolveApiUrl } from "@/lib/api/config";
+import { withRequestId } from "@/lib/api/errors";
 import {
   fetchBlockedUsers,
   unblockUser,
@@ -122,7 +123,7 @@ export default function BlockedUsersModal({
       }
       invalidateAfterUgcModeration(queryClient);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not unblock.");
+      toast.error(withRequestId(e instanceof Error ? e.message : "Could not unblock.", e));
     } finally {
       setPendingId(null);
     }
@@ -143,7 +144,12 @@ export default function BlockedUsersModal({
         </ul>
       ) : error ? (
         <p className="font-apex-body text-sm text-apex-error">
-          Could not load blocked users.
+          {withRequestId(
+            error instanceof Error && error.message
+              ? error.message
+              : "Could not load blocked users.",
+            error,
+          )}
         </p>
       ) : !data?.items.length ? (
         <p className="font-apex-body text-sm text-apex-on-surface-variant">

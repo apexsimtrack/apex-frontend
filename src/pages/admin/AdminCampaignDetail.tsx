@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
+  apiErrorText,
   ApiError,
   deleteCampaign,
   fetchCampaignDeliveries,
@@ -135,9 +136,7 @@ export default function AdminCampaignDetail() {
           </div>
         ) : detailQuery.isError || !detailQuery.data ? (
           <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {detailQuery.error instanceof ApiError
-              ? detailQuery.error.message
-              : "Could not load campaign."}
+            {apiErrorText(detailQuery.error, "Could not load campaign.")}
           </div>
         ) : (
           <>
@@ -191,9 +190,7 @@ export default function AdminCampaignDetail() {
 
             {deleteMut.isError && (
               <div className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {deleteMut.error instanceof ApiError
-                  ? deleteMut.error.message
-                  : "Could not delete campaign."}
+                {apiErrorText(deleteMut.error, "Could not delete campaign.")}
               </div>
             )}
 
@@ -419,9 +416,7 @@ export default function AdminCampaignDetail() {
       >
         {deleteMut.isError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {deleteMut.error instanceof ApiError
-              ? deleteMut.error.message
-              : "Could not delete campaign."}
+            {apiErrorText(deleteMut.error, "Could not delete campaign.")}
           </div>
         ) : null}
       </BaseAlertDialog>

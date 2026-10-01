@@ -21,6 +21,7 @@ import {
   getProfileHomeWeekly,
   patchWeeklyGoals,
 } from "@/lib/api/profile";
+import { withRequestId } from "@/lib/api/errors";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ownedProfileUserKey,
@@ -139,8 +140,10 @@ export default function SettingsWeeklyGoalsSection() {
       toast.success("Weekly goals updated");
       setTimeout(() => setSuccess(false), 2000);
     } catch (e) {
-      const message =
-        e instanceof Error ? e.message : "Failed to update weekly goals.";
+      const message = withRequestId(
+        e instanceof Error ? e.message : "Failed to update weekly goals.",
+        e,
+      );
       form.setError("root", { type: "server", message });
       toast.error(message);
     } finally {

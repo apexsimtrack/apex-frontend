@@ -10,6 +10,7 @@ import {
   FOLLOW_LIST_PAGE_SIZE,
   type FollowUser,
 } from "@/lib/api";
+import { withRequestId } from "@/lib/api/errors";
 import { profileKeys } from "@/lib/profileQueryKeys";
 import { RaceHistoryPagination } from "@/components/RaceHistoryPagination";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -157,9 +158,9 @@ export function FollowListDialog({
   const rangeEnd = total === 0 ? 0 : Math.min(currentPage * pageLimit, total);
   const errMsg =
     error instanceof Error
-      ? error.message
+      ? withRequestId(error.message, error)
       : error
-        ? "Failed to load list."
+        ? withRequestId("Failed to load list.", error)
         : null;
 
   return (

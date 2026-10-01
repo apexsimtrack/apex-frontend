@@ -35,7 +35,7 @@ import {
   resolveDiscussionAvatarSrc,
   getDiscussionAuthorId,
 } from "@/lib/api/config";
-import { ApiError } from "@/lib/api/errors";
+import { withRequestId, apiErrorText, ApiError } from "@/lib/api/errors";
 import { discussionDetailQueryKey } from "@/lib/community/discussionDetailPrefetch";
 import type { AuthRedirectState } from "@/auth/authRedirect";
 import { AUTH_PATHS } from "@/config/navigation";
@@ -76,10 +76,10 @@ const COMMENTS_SORT = "desc" as const;
 const DEFAULT_REPLY_BAR_HEIGHT = 120;
 
 function discussionLoadErrorMessage(e: unknown): string {
-  if (e instanceof ApiError && e.status === 404) return "Discussion not found.";
-  if (e instanceof ApiError && e.status === 0)
-    return "Failed to load discussion.";
-  return "Failed to load discussion.";
+  if (e instanceof ApiError && e.status === 404) {
+    return withRequestId("Discussion not found.", e);
+  }
+  return withRequestId("Failed to load discussion.", e);
 }
 
 function discussionPath(id: string) {
@@ -207,9 +207,12 @@ export default function DiscussionDetail() {
     : null;
 
   const commentsError = commentsQuery.isError
-    ? commentsQuery.error instanceof Error
-      ? commentsQuery.error.message
-      : "Failed to load comments."
+    ? withRequestId(
+        commentsQuery.error instanceof Error
+          ? commentsQuery.error.message
+          : "Failed to load comments.",
+        commentsQuery.error,
+      )
     : null;
 
   const loading =
@@ -282,11 +285,7 @@ export default function DiscussionDetail() {
     },
     onError: (e: unknown) => {
       setReplyError(
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
-            ? e.message
-            : "Failed to post reply.",
+        withRequestId(e instanceof Error ? e.message : "Failed to post reply.", e),
       );
     },
   });
@@ -336,7 +335,7 @@ export default function DiscussionDetail() {
         bumpDiscussionCommentCount(-1);
       }
       setThreadReplyError(
-        err instanceof Error ? err.message : "Failed to post reply.",
+        withRequestId(err instanceof Error ? err.message : "Failed to post reply.", err),
       );
     },
     onSuccess: () => {
@@ -395,7 +394,7 @@ export default function DiscussionDetail() {
       if (ctx?.previous)
         queryClient.setQueryData(commentsQueryKey, ctx.previous);
       setCommentEditError(
-        err instanceof Error ? err.message : "Failed to edit comment.",
+        withRequestId(err instanceof Error ? err.message : "Failed to edit comment.", err),
       );
     },
     onSuccess: () => {
@@ -529,7 +528,7 @@ export default function DiscussionDetail() {
     },
     onError: (e: unknown) => {
       setEditError(
-        e instanceof ApiError ? e.message : "Could not save changes.",
+        apiErrorText(e, "Could not save changes."),
       );
     },
   });

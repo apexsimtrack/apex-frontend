@@ -6,7 +6,7 @@ import {
   postAdminDisposableEmailScan,
   type AdminUserListParams,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseModal } from "@/components/ui/base-modal";
@@ -177,7 +177,7 @@ export default function AdminUsers() {
       }
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Scan failed.");
+      toast.error(apiErrorText(err, "Scan failed."));
     },
   });
 
@@ -196,7 +196,7 @@ export default function AdminUsers() {
     },
     onError: (err) => {
       toast.error(
-        err instanceof ApiError ? err.message : "Could not apply flags.",
+        apiErrorText(err, "Could not apply flags."),
       );
     },
   });
@@ -356,9 +356,7 @@ export default function AdminUsers() {
 
         {isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load users."}
+            {apiErrorText(error, "Could not load users.")}
           </div>
         )}
 

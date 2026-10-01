@@ -12,7 +12,7 @@ import {
   deleteAdminCommunityDiscussionImage,
   getDiscussionCategoryLabel,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
 import { validateDiscussionImageFile } from "@/lib/api/community";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
@@ -96,7 +96,7 @@ export default function AdminCommunityDiscussionDetail() {
       });
     },
     onError: (e) => {
-      setFormError(e instanceof ApiError ? e.message : "Update failed");
+      setFormError(apiErrorText(e, "Update failed"));
     },
   });
 
@@ -131,7 +131,7 @@ export default function AdminCommunityDiscussionDetail() {
       navigate("/admin/community");
     },
     onError: (e) => {
-      setHardDeleteError(e instanceof ApiError ? e.message : "Delete failed");
+      setHardDeleteError(apiErrorText(e, "Delete failed"));
     },
   });
 
@@ -171,9 +171,7 @@ export default function AdminCommunityDiscussionDetail() {
 
         {isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load discussion."}
+            {apiErrorText(error, "Could not load discussion.")}
           </div>
         )}
 
@@ -302,9 +300,12 @@ export default function AdminCommunityDiscussionDetail() {
                     })
                     .catch((err: unknown) => {
                       toast.error(
-                        err instanceof Error
-                          ? err.message
-                          : "Image upload failed",
+                        withRequestId(
+                          err instanceof Error
+                            ? err.message
+                            : "Image upload failed",
+                          err,
+                        ),
                       );
                     })
                     .finally(() => setImageBusy(false));
@@ -335,9 +336,12 @@ export default function AdminCommunityDiscussionDetail() {
                         })
                         .catch((err: unknown) => {
                           toast.error(
-                            err instanceof Error
-                              ? err.message
-                              : "Could not remove image",
+                            withRequestId(
+                              err instanceof Error
+                                ? err.message
+                                : "Could not remove image",
+                              err,
+                            ),
                           );
                         })
                         .finally(() => setImageBusy(false));
@@ -576,9 +580,7 @@ export default function AdminCommunityDiscussionDetail() {
               className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               role="alert"
             >
-              {deleteCommentMutation.error instanceof ApiError
-                ? deleteCommentMutation.error.message
-                : "Delete failed"}
+              {apiErrorText(deleteCommentMutation.error, "Delete failed")}
             </div>
           ) : null}
         </BaseAlertDialog>

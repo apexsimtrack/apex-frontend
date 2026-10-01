@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type { UseFormReturn } from "react-hook-form";
 import { authMe, updateMe, uploadProfileAvatar } from "@/lib/api/authAndContact";
+import { withRequestId } from "@/lib/api/errors";
 import type { AuthUser } from "@/lib/api/authAndContact";
 import type { ProfileSummary } from "@/lib/api/profile";
 import type { WithRootError } from "@/lib/formWithRootError";
@@ -56,7 +57,10 @@ export async function saveProfileIdentity({
       avatarUrlToSet = uploadRes.avatarUrl;
       uploadedAvatarForSession = withCacheBust(avatarUrlToSet, Date.now());
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Avatar upload failed.";
+      const msg = withRequestId(
+        e instanceof Error ? e.message : "Avatar upload failed.",
+        e,
+      );
       form.setError("root", { type: "server", message: msg });
       return false;
     }
@@ -144,7 +148,10 @@ export async function saveProfileIdentity({
   } catch (e) {
     form.setError("root", {
       type: "server",
-      message: e instanceof Error ? e.message : "Failed to update profile.",
+      message: withRequestId(
+        e instanceof Error ? e.message : "Failed to update profile.",
+        e,
+      ),
     });
     return false;
   }

@@ -2,6 +2,7 @@ import { apiPatch, apiPost } from "./httpVerbs";
 import { fetchApi, buildApiAuthHeaders } from "./fetchClient";
 import { API_BASE } from "./config";
 import { ApiError } from "./errors";
+import { responseRequestId } from "./requestId";
 import type { DiscussionAuthor } from "./community";
 
 export type AdminCommunityDiscussionListItem = {
@@ -240,11 +241,13 @@ export async function uploadAdminCommunityDiscussionImage(
 
   if (!res.ok) {
     let message = "Image upload failed";
+    let body: unknown;
     try {
       const text = await res.text();
       if (text) {
         try {
           const json = JSON.parse(text) as { message?: string; error?: string };
+          body = json;
           message = json.message ?? json.error ?? message;
         } catch {
           message = text;
@@ -253,7 +256,13 @@ export async function uploadAdminCommunityDiscussionImage(
     } catch {
       // keep default
     }
-    throw new ApiError(res.status, message);
+    throw new ApiError(
+      res.status,
+      message,
+      undefined,
+      undefined,
+      responseRequestId(res.headers.get("x-request-id"), body),
+    );
   }
 
   return (await res.json()) as { imageUrl: string | null };

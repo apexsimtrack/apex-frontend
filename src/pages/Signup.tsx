@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { authRegister, authMe } from "@/lib/api";
+import { authRegister, authMe, withRequestId } from "@/lib/api";
 import { AUTH_ME_QUERY_KEY } from "@/contexts/AuthContext";
 import { prefetchAfterAuthRedirect } from "@/lib/profileQueryKeys";
 import type { WithRootError } from "@/lib/formWithRootError";
@@ -65,10 +65,12 @@ export default function Signup() {
           window.dispatchEvent(new Event("apex:auth"));
           form.setError("root", {
             type: "server",
-            message:
-              meErr instanceof Error
-                ? meErr.message
-                : "Could not load your session. Please try signing in.",
+            message: withRequestId(
+            meErr instanceof Error
+              ? meErr.message
+              : "Could not load your session. Please try signing in.",
+            meErr,
+          ),
           });
           return;
         }
@@ -86,10 +88,12 @@ export default function Signup() {
     } catch (err) {
       form.setError("root", {
         type: "server",
-        message:
+        message: withRequestId(
           err instanceof Error
             ? err.message
             : "Signup failed. Email may already exist.",
+          err,
+        ),
       });
     } finally {
       setLoading(false);

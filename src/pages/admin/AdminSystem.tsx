@@ -37,6 +37,7 @@ import {
   ADMIN_TABS_LIST,
 } from "@/pages/admin/adminTabsLayout";
 import {
+  apiErrorText,
   ApiError,
   fetchAdminSystemFeatures,
   createAdminSystemIncident,
@@ -271,7 +272,7 @@ function StatusPill({ status }: { status: SystemStatusLevel }) {
 }
 
 function InlineError({ error }: { error: unknown }) {
-  const message = error instanceof ApiError ? error.message : "Request failed.";
+  const message = apiErrorText(error, "Request failed.");
   return (
     <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
       {message}
@@ -847,7 +848,7 @@ function FeaturesTab() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : "Could not update feature",
+        apiErrorText(error, "Could not update feature"),
       );
     },
   });
@@ -1249,7 +1250,7 @@ function OperationsTab() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : "Could not create incident",
+        apiErrorText(error, "Could not create incident"),
       );
     },
   });
@@ -1278,9 +1279,7 @@ function OperationsTab() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError
-          ? error.message
-          : "Could not create maintenance window",
+        apiErrorText(error, "Could not create maintenance window"),
       );
     },
   });
@@ -1303,7 +1302,7 @@ function OperationsTab() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : "Could not update incident",
+        apiErrorText(error, "Could not update incident"),
       );
     },
   });
@@ -1326,9 +1325,7 @@ function OperationsTab() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError
-          ? error.message
-          : "Could not update maintenance window",
+        apiErrorText(error, "Could not update maintenance window"),
       );
     },
   });
@@ -1346,7 +1343,7 @@ function OperationsTab() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : "Could not delete incident",
+        apiErrorText(error, "Could not delete incident"),
       );
     },
   });
@@ -1367,9 +1364,7 @@ function OperationsTab() {
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError
-          ? error.message
-          : "Could not delete maintenance window",
+        apiErrorText(error, "Could not delete maintenance window"),
       );
     },
   });

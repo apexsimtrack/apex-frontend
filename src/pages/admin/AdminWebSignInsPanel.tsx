@@ -6,7 +6,7 @@ import {
   fetchAdminAuthSessionUsersList,
   fetchAdminAuthSessionsMetrics,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import { BaseAlertDialog, BaseModal } from "@/components/ui/base-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,7 +118,7 @@ export function AdminWebSignInsPanel() {
     },
     onError: (e: unknown) => {
       toast.error(
-        e instanceof ApiError ? e.message : "Could not revoke sessions.",
+        apiErrorText(e, "Could not revoke sessions."),
       );
     },
   });
@@ -175,9 +175,7 @@ export function AdminWebSignInsPanel() {
 
       {sessionsQuery.isError && (
         <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {sessionsQuery.error instanceof ApiError
-            ? sessionsQuery.error.message
-            : "Could not load sessions."}
+          {apiErrorText(sessionsQuery.error, "Could not load sessions.")}
         </div>
       )}
 

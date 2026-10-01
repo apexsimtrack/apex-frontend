@@ -4,9 +4,10 @@ import { Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import PageMeta from "@/components/PageMeta";
-import { COMPANY_NAME } from "@/lib/siteMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { AUTH_PATHS } from "@/config/navigation";
 import type { BillingInterval } from "@/lib/api";
+import { withRequestId } from "@/lib/api/errors";
 import { getBillingPlans } from "@/lib/api";
 import { formatCurrentSubscriptionLabel } from "@/features/billing/subscriptionDisplay";
 import { useRevenueCat } from "@/features/billing/useRevenueCat";
@@ -37,8 +38,6 @@ import { PricingPageSkeleton } from "./pricing/PricingPageSkeleton";
 import { ProPlanCard } from "./pricing/ProPlanCard";
 
 const PRICING_PATH = "/pricing";
-const title = `Pricing | ${COMPANY_NAME}`;
-const description = `Compare Free and Apex Pro plans for sim racing telemetry, leaderboards, and coaching. Apex Pro is £5.99/month or £49.99/year.`;
 
 export default function Pricing() {
   const { user, loading: authLoading } = useAuth();
@@ -62,6 +61,8 @@ export default function Pricing() {
     isBillingEnabled,
     availablePackages,
     offeringsQuery,
+    offeringsError,
+    retryOfferings,
     eligibilityQuery,
     eligibilityError,
     retryEligibility,
@@ -161,7 +162,12 @@ export default function Pricing() {
     } catch (err) {
       setMessage(null);
       setWarning(null);
-      setError(err instanceof Error ? err.message : "Could not subscribe.");
+      setError(
+        withRequestId(
+          err instanceof Error ? err.message : "Could not subscribe.",
+          err,
+        ),
+      );
     }
   }
 
@@ -173,9 +179,12 @@ export default function Pricing() {
       await openBillingPortal(action);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Could not open subscription settings.",
+        withRequestId(
+          err instanceof Error
+            ? err.message
+            : "Could not open subscription settings.",
+          err,
+        ),
       );
     }
   }
@@ -196,7 +205,10 @@ export default function Pricing() {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Could not restore purchases.",
+        withRequestId(
+          err instanceof Error ? err.message : "Could not restore purchases.",
+          err,
+        ),
       );
     }
   }
@@ -209,7 +221,12 @@ export default function Pricing() {
 
   return (
     <>
-      <PageMeta title={title} description={description} path={PRICING_PATH} />
+      <PageMeta
+        title={STATIC_SEO.pricing.title}
+        description={STATIC_SEO.pricing.description}
+        path={STATIC_SEO.pricing.path}
+        jsonLd={STATIC_SEO.pricing.jsonLd}
+      />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">
         <div className="mb-10">
           <h1 className="font-apex-headline text-3xl font-bold tracking-tight text-apex-on-surface">
@@ -294,13 +311,19 @@ export default function Pricing() {
               eligibilityPending={
                 Boolean(user) &&
                 isBillingEnabled &&
-                (eligibilityQuery.isPending || eligibilityQuery.isFetching)
+                eligibilityQuery.isPending
               }
               eligibilityError={
                 Boolean(user) && isBillingEnabled ? eligibilityError : null
               }
+              offeringsError={
+                Boolean(user) && isBillingEnabled ? offeringsError : null
+              }
               onRetryEligibility={() => {
                 void retryEligibility();
+              }}
+              onRetryOfferings={() => {
+                void retryOfferings();
               }}
               isPurchasing={isPurchasing}
               isRestoringPurchases={isRestoringPurchases}

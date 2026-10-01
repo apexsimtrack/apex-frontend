@@ -7,6 +7,7 @@ import { appSecondaryButtonClassName } from "@/components/app-ui/appButtonClasse
 import { RaceHistoryPagination } from "@/components/RaceHistoryPagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolveApiUrl } from "@/lib/api/config";
+import { withRequestId } from "@/lib/api/errors";
 import {
   fetchHiddenContent,
   unhideContent,
@@ -203,7 +204,7 @@ export default function HiddenContentModal({
       }
       invalidateAfterUgcModeration(queryClient);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not unhide content.");
+      toast.error(withRequestId(e instanceof Error ? e.message : "Could not unhide content.", e));
     } finally {
       setPendingId(null);
     }
@@ -249,7 +250,12 @@ export default function HiddenContentModal({
         </ul>
       ) : error ? (
         <p className="font-apex-body text-sm text-apex-error">
-          Could not load hidden content.
+          {withRequestId(
+            error instanceof Error && error.message
+              ? error.message
+              : "Could not load hidden content.",
+            error,
+          )}
         </p>
       ) : !data?.items.length ? (
         <p className="font-apex-body text-sm text-apex-on-surface-variant">

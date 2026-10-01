@@ -1,11 +1,8 @@
 import { Link } from "react-router-dom";
 import PageMeta from "@/components/PageMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { COMPANY_NAME, SITE_ORIGIN } from "@/lib/siteMeta";
 import { SUPPORT_EMAIL } from "@/lib/appConfig";
-
-const EULA_PATH = "/eula";
-const title = `End User License Agreement | ${COMPANY_NAME} Agent`;
-const description = `License terms for the ${COMPANY_NAME} Agent desktop application for Windows, macOS, and Linux.`;
 
 const linkClassName =
   "text-apex-primary transition-colors hover:text-apex-primary/80";
@@ -24,7 +21,11 @@ const h2ClassName = "font-apex-headline text-lg font-semibold text-apex-on-surfa
 export default function EULA() {
   return (
     <>
-      <PageMeta title={title} description={description} path={EULA_PATH} />
+      <PageMeta
+        title={STATIC_SEO.eula.title}
+        description={STATIC_SEO.eula.description}
+        path={STATIC_SEO.eula.path}
+      />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">
         <article className="mx-auto w-full max-w-3xl">
           <header className="mb-10 border-b border-apex-outline-variant/15 pb-8">

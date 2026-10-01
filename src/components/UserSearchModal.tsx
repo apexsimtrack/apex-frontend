@@ -10,6 +10,7 @@ import {
   USER_DISCOVER_PAGE_SIZE,
   type UserDiscoverHit,
 } from "@/lib/api";
+import { withRequestId } from "@/lib/api/errors";
 import { RaceHistoryPagination } from "@/components/RaceHistoryPagination";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { appInputClassName } from "@/components/app-ui/appButtonClasses";
@@ -144,9 +145,9 @@ export function UserSearchModal({ open, onOpenChange }: UserSearchModalProps) {
   const rangeEnd = total === 0 ? 0 : Math.min(currentPage * pageLimit, total);
   const errMsg =
     error instanceof Error
-      ? error.message
+      ? withRequestId(error.message, error)
       : error
-        ? "Failed to load results."
+        ? withRequestId("Failed to load results.", error)
         : null;
 
   return (

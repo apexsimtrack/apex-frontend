@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Maximize2 } from "lucide-react";
 import { formatLapMs, cn } from "@/lib/utils";
+import { withRequestId } from "@/lib/api/errors";
 import { useIsProUser, useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/hooks/usePlatform";
 import {
@@ -60,6 +61,7 @@ export default function SessionTelemetry({
     data: summary,
     isLoading,
     isError,
+    error: summaryError,
   } = useTelemetrySummary(
     sessionId,
     !authLoading && isPro && !agentOnlyGate,
@@ -96,8 +98,12 @@ export default function SessionTelemetry({
       summary.laps.some((l) => l.lapNumber === selectedLap && l.hasTraces),
   );
 
-  const { data: traces, isLoading: tracesLoading, isError: tracesError } =
-    useTelemetryTraces(
+  const {
+    data: traces,
+    isLoading: tracesLoading,
+    isError: tracesError,
+    error: tracesQueryError,
+  } = useTelemetryTraces(
       sessionId,
       selectedLap,
       compareLap,
@@ -191,7 +197,10 @@ export default function SessionTelemetry({
           Telemetry Analysis
         </h3>
         <p className="mt-2 font-apex-body text-sm text-apex-error">
-          Unable to load telemetry for this session.
+          {withRequestId(
+            "Unable to load telemetry for this session.",
+            summaryError,
+          )}
         </p>
       </section>
     );
@@ -302,7 +311,10 @@ export default function SessionTelemetry({
               <div className="h-48 animate-pulse rounded-lg bg-apex-surface-container" />
             ) : tracesError ? (
               <p className="font-apex-body text-sm text-apex-error">
-                Failed to load driving traces for this lap.
+                {withRequestId(
+                  "Failed to load driving traces for this lap.",
+                  tracesQueryError,
+                )}
               </p>
             ) : traces ? (
               <SessionTelemetryCharts traces={traces} />

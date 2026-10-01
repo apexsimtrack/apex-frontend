@@ -1,11 +1,8 @@
 import { Link } from "react-router-dom";
 import PageMeta from "@/components/PageMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { COMPANY_NAME, SITE_ORIGIN } from "@/lib/siteMeta";
 import { SUPPORT_EMAIL } from "@/lib/appConfig";
-
-const TERMS_PATH = "/terms-and-conditions";
-const title = `Terms & Conditions | ${COMPANY_NAME}`;
-const description = `Terms and conditions for using the ${COMPANY_NAME} sim racing platform, Apex Agent, and Pro subscription.`;
 
 const linkClassName =
   "text-apex-primary transition-colors hover:text-apex-primary/80";
@@ -13,7 +10,11 @@ const linkClassName =
 export default function TermsAndConditions() {
   return (
     <>
-      <PageMeta title={title} description={description} path={TERMS_PATH} />
+      <PageMeta
+        title={STATIC_SEO.terms.title}
+        description={STATIC_SEO.terms.description}
+        path={STATIC_SEO.terms.path}
+      />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">
         <article className="mx-auto w-full max-w-3xl">
           <header className="mb-10 border-b border-apex-outline-variant/15 pb-8">

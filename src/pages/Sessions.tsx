@@ -35,6 +35,7 @@ import {
   type SessionsLibraryBySimStats,
 } from "@/lib/api/sessionsLibrary";
 import { isNetworkError } from "@/lib/api/profile";
+import { withRequestId } from "@/lib/api/errors";
 import { useAuth, useIsProUser } from "@/contexts/AuthContext";
 import { usePlatform } from "@/hooks/usePlatform";
 import PageMeta from "@/components/PageMeta";
@@ -51,9 +52,9 @@ function formatQueryError(err: unknown, fallback: string): string {
     return "Can't reach Apex backend. Check it's running.";
   }
   if (err instanceof Error && err.message.trim()) {
-    return err.message;
+    return withRequestId(err.message, err);
   }
-  return fallback;
+  return withRequestId(fallback, err);
 }
 
 function hasLibrarySubFilters(

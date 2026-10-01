@@ -13,7 +13,7 @@ import {
   type AdminFollowUserSide,
   type AdminFollowsAnomalies,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
@@ -191,7 +191,7 @@ export default function AdminFollows() {
     },
     onError: (e) => {
       setRemoveError(
-        e instanceof ApiError ? e.message : "Could not remove follow",
+        apiErrorText(e, "Could not remove follow"),
       );
     },
   });
@@ -208,7 +208,7 @@ export default function AdminFollows() {
     },
     onError: (e) => {
       setRemoveError(
-        e instanceof ApiError ? e.message : "Could not decline follow request",
+        apiErrorText(e, "Could not decline follow request"),
       );
     },
   });
@@ -462,9 +462,7 @@ function EdgesTab({ onRemove }: { onRemove: (t: RemoveTarget) => void }) {
       {isError ? (
         <div className="px-6 py-12 text-center">
           <p className="text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load follows."}
+            {apiErrorText(error, "Could not load follows.")}
           </p>
         </div>
       ) : isPending ? (
@@ -688,9 +686,7 @@ function RequestsTab({ onRemove }: { onRemove: (t: RemoveTarget) => void }) {
       {isError ? (
         <div className="px-6 py-12 text-center">
           <p className="text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load follow requests."}
+            {apiErrorText(error, "Could not load follow requests.")}
           </p>
         </div>
       ) : isPending ? (
@@ -857,9 +853,7 @@ function AnomaliesTab({ onRemove }: { onRemove: (t: RemoveTarget) => void }) {
   if (isError) {
     return (
       <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-        {error instanceof ApiError
-          ? error.message
-          : "Could not load abuse signals."}
+        {apiErrorText(error, "Could not load abuse signals.")}
       </div>
     );
   }

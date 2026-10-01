@@ -7,6 +7,7 @@ import { COMPANY_NAME } from "@/lib/siteMeta";
 import { Button } from "@/components/ui/button";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
 import {
+  apiErrorText,
   ApiError,
   archiveBroadcast,
   deleteBroadcast,
@@ -150,9 +151,7 @@ export default function AdminBroadcastDetail() {
           </div>
         ) : isError || !data ? (
           <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load broadcast."}
+            {apiErrorText(error, "Could not load broadcast.")}
           </div>
         ) : (
           <>
@@ -257,9 +256,7 @@ export default function AdminBroadcastDetail() {
                     archiveMut.error ??
                     unarchiveMut.error ??
                     deleteMut.error;
-                  return err instanceof ApiError
-                    ? err.message
-                    : "Action failed.";
+                  return apiErrorText(err, "Action failed.");
                 })()}
               </div>
             )}
@@ -389,9 +386,7 @@ export default function AdminBroadcastDetail() {
       >
         {deleteMut.isError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {deleteMut.error instanceof ApiError
-              ? deleteMut.error.message
-              : "Could not delete broadcast."}
+            {apiErrorText(deleteMut.error, "Could not delete broadcast.")}
           </div>
         ) : null}
       </BaseAlertDialog>

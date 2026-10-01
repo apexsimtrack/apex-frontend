@@ -37,7 +37,7 @@ export function resolveAuthLoading(
   return (
     tokenPresent &&
     !isUnauthorizedError &&
-    (meRefetching ||
-      (meQuery.data === undefined && (meQuery.isPending || meQuery.isFetching)))
+    meQuery.data === undefined &&
+    (meRefetching || meQuery.isPending || meQuery.isFetching)
   );
 }

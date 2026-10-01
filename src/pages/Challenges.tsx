@@ -18,8 +18,9 @@ import {
   type ChallengeListParams,
   type ChallengesMeta,
 } from "@/lib/api/challenges";
+import { withRequestId } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
-import { COMPANY_NAME } from "@/lib/siteMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AuthRedirectState } from "@/auth/authRedirect";
 import { AUTH_PATHS } from "@/config/navigation";
@@ -30,9 +31,7 @@ import { challengeLiveRefetchIntervalMs } from "@/hooks/useChallengeLiveState";
 import { useAfterFirstPaint } from "@/hooks/useAfterFirstPaint";
 import { useSharedNowMs } from "@/hooks/useSharedNowMs";
 
-const CHALLENGES_PATH = "/challenges";
-const challengesTitle = `Challenges | ${COMPANY_NAME}`;
-const challengesDescription = `Sim racing challenges and tournaments on ${COMPANY_NAME}: compete, qualify, and climb leaderboards.`;
+const CHALLENGES_PATH = STATIC_SEO.challenges.path;
 
 const PAGE_SIZE = 12;
 const SKELETON_ROW_COUNT = 5;
@@ -214,9 +213,12 @@ export default function Challenges() {
     onError: (e: unknown) => {
       console.error(e);
       setJoinError(
-        typeof (e as Error)?.message === "string"
-          ? (e as Error).message
-          : "Join failed",
+        withRequestId(
+          typeof (e as Error)?.message === "string"
+            ? (e as Error).message
+            : "Join failed",
+          e,
+        ),
       );
     },
   });
@@ -244,9 +246,10 @@ export default function Challenges() {
     : null;
 
   const error = listFailed
-    ? listError instanceof Error
-      ? listError.message
-      : String(listError)
+    ? withRequestId(
+        listError instanceof Error ? listError.message : String(listError),
+        listError,
+      )
     : null;
 
   const items = useMemo(() => {
@@ -318,8 +321,8 @@ export default function Challenges() {
   return (
     <>
       <PageMeta
-        title={challengesTitle}
-        description={challengesDescription}
+        title={STATIC_SEO.challenges.title}
+        description={STATIC_SEO.challenges.description}
         path={CHALLENGES_PATH}
       />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col space-y-8 px-6 py-8">

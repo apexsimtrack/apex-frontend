@@ -6,6 +6,7 @@ import {
   verifyPasswordResetCode,
   resetPasswordWithCode,
   ApiError,
+  withRequestId,
 } from "@/lib/api";
 import type { WithRootError } from "@/lib/formWithRootError";
 import {
@@ -78,8 +79,10 @@ export default function ForgotPassword() {
     } catch (err) {
       emailForm.setError("root", {
         type: "server",
-        message:
+        message: withRequestId(
           err instanceof Error ? err.message : "Failed to request reset.",
+          err,
+        ),
       });
     } finally {
       setLoading(false);
@@ -105,17 +108,26 @@ export default function ForgotPassword() {
       if (err instanceof ApiError && err.code === "RESET_CODE_INVALID") {
         codeForm.setError("root", {
           type: "server",
-          message: "That code is invalid. Check the email and try again.",
+          message: withRequestId(
+            "That code is invalid. Check the email and try again.",
+            err,
+          ),
         });
       } else if (err instanceof ApiError && err.code === "RESET_CODE_EXPIRED") {
         codeForm.setError("root", {
           type: "server",
-          message: "That code has expired. Request a new one.",
+          message: withRequestId(
+            "That code has expired. Request a new one.",
+            err,
+          ),
         });
       } else {
         codeForm.setError("root", {
           type: "server",
-          message: err instanceof Error ? err.message : "Verification failed.",
+          message: withRequestId(
+            err instanceof Error ? err.message : "Verification failed.",
+            err,
+          ),
         });
       }
     } finally {
@@ -149,8 +161,10 @@ export default function ForgotPassword() {
     } catch (err) {
       resetForm.setError("root", {
         type: "server",
-        message:
+        message: withRequestId(
           err instanceof Error ? err.message : "Failed to reset password.",
+          err,
+        ),
       });
     } finally {
       setLoading(false);
@@ -174,7 +188,10 @@ export default function ForgotPassword() {
     } catch (err) {
       codeForm.setError("root", {
         type: "server",
-        message: err instanceof Error ? err.message : "Failed to resend code.",
+        message: withRequestId(
+          err instanceof Error ? err.message : "Failed to resend code.",
+          err,
+        ),
       });
     } finally {
       setLoading(false);

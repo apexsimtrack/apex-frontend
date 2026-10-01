@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { wholeNumberInputProps } from "@/lib/inputGuards";
+import { withRequestId } from "@/lib/api/errors";
 import {
   fetchAdminUserList,
   previewAudience,
@@ -140,7 +141,9 @@ export function AudiencePicker({ value, onChange }: AudiencePickerProps) {
                 {previewQuery.data.count === 1 ? "" : "s"}
               </>
             ) : previewQuery.isError ? (
-              <span className="text-destructive">error</span>
+              <span className="text-destructive">
+                {withRequestId("error", previewQuery.error)}
+              </span>
             ) : (
               <span className="text-muted-foreground">computing…</span>
             )}

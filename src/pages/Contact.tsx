@@ -6,9 +6,9 @@ import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { CheckCircle2, Clock, HelpCircle, Loader2, Mail } from "lucide-react";
 import PageMeta from "@/components/PageMeta";
-import { COMPANY_NAME } from "@/lib/siteMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { SUPPORT_EMAIL } from "@/lib/appConfig";
-import { submitContact, ApiError } from "@/lib/api";
+import { submitContact, ApiError, withRequestId } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,7 +30,6 @@ import {
   type ContactFormValues,
 } from "@/lib/validation/contact";
 
-const CONTACT_PATH = "/contact";
 
 const defaultValues: ContactFormValues = {
   name: "",
@@ -72,8 +71,6 @@ export default function Contact() {
     defaultValues,
   });
 
-  const title = `Contact us | ${COMPANY_NAME}`;
-  const description = `Reach ${COMPANY_NAME} support — questions, feedback, and account help.`;
 
   const mutation = useMutation({
     mutationFn: submitContact,
@@ -89,10 +86,12 @@ export default function Contact() {
       form.reset(defaultValues);
     },
     onError: (err: unknown) => {
-      let description =
+      let description = withRequestId(
         err instanceof Error
           ? err.message
-          : "Something went wrong. Please try again.";
+          : "Something went wrong. Please try again.",
+        err,
+      );
       if (err instanceof ApiError && err.status === 503) {
         description = `${description} You can also reach us at ${SUPPORT_EMAIL}.`;
       }
@@ -114,9 +113,9 @@ export default function Contact() {
   return (
     <>
       <PageMeta
-        title={title}
-        description={description}
-        path={CONTACT_PATH}
+        title={STATIC_SEO.contact.title}
+        description={STATIC_SEO.contact.description}
+        path={STATIC_SEO.contact.path}
       />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col space-y-8 px-6 py-8">
         <header>

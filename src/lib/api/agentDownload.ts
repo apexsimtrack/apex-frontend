@@ -3,6 +3,7 @@ import { AGENT_DOWNLOAD_FILENAMES } from "@/hooks/useDetectedAgentOs";
 import { API_BASE } from "./config";
 import { openExternalUrl } from "@/lib/capacitor/openExternalUrl";
 import { ApiError, ProRequiredError } from "./errors";
+import { responseRequestId } from "./requestId";
 import {
   buildApiAuthHeaders,
   emitProRequiredEvent,
@@ -80,19 +81,27 @@ export async function getAgentDownloadLink(
   }
 
   if (!res.ok) {
-    const { message, code, retryAfterMs } = await extractErrorInfo(res);
+    const { message, code, retryAfterMs, requestId } = await extractErrorInfo(res);
     if (code === "PRO_REQUIRED") {
       emitProRequiredEvent();
-      throw new ProRequiredError(message);
+      const proError = new ProRequiredError(message);
+      proError.requestId = requestId;
+      throw proError;
     }
     await notifyAuthExpired(false, res.status);
-    throw new ApiError(res.status, message, code, retryAfterMs);
+    throw new ApiError(res.status, message, code, retryAfterMs, requestId);
   }
 
   if (isJsonContentType(res.headers.get("Content-Type"))) {
     const payload = (await res.json()) as AgentDownloadResponse;
     if (!payload?.url || typeof payload.url !== "string") {
-      throw new ApiError(502, "Invalid agent download response from server.");
+      throw new ApiError(
+        502,
+        "Invalid agent download response from server.",
+        undefined,
+        undefined,
+        responseRequestId(res.headers.get("x-request-id"), payload),
+      );
     }
     return payload;
   }

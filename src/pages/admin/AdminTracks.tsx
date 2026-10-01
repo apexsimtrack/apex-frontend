@@ -14,7 +14,7 @@ import {
   type AdminCatalogCarRow,
   type AdminCatalogConsistency,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import { validateTrackImageFile } from "@/lib/trackImageValidation";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
@@ -120,7 +120,7 @@ export default function AdminTracks() {
       });
     },
     onError: (e) =>
-      setFormError(e instanceof ApiError ? e.message : "Update failed"),
+      setFormError(apiErrorText(e, "Update failed")),
   });
 
   const patchCarMu = useMutation({
@@ -136,7 +136,7 @@ export default function AdminTracks() {
       });
     },
     onError: (e) =>
-      setFormError(e instanceof ApiError ? e.message : "Update failed"),
+      setFormError(apiErrorText(e, "Update failed")),
   });
 
   const createTrackMu = useMutation({
@@ -155,6 +155,9 @@ export default function AdminTracks() {
             err instanceof ApiError
               ? `Track created, but image upload failed: ${err.message}`
               : "Track created, but image upload failed",
+            undefined,
+            undefined,
+            err instanceof ApiError ? err.requestId : undefined,
           );
         }
       }
@@ -169,7 +172,7 @@ export default function AdminTracks() {
       });
     },
     onError: (e) =>
-      setFormError(e instanceof ApiError ? e.message : "Create failed"),
+      setFormError(apiErrorText(e, "Create failed")),
   });
 
   const createCarMu = useMutation({
@@ -182,7 +185,7 @@ export default function AdminTracks() {
       });
     },
     onError: (e) =>
-      setFormError(e instanceof ApiError ? e.message : "Create failed"),
+      setFormError(apiErrorText(e, "Create failed")),
   });
 
   const resolveTrackMu = useMutation({
@@ -197,7 +200,7 @@ export default function AdminTracks() {
     },
     onError: (e) =>
       setResolveError(
-        e instanceof ApiError ? e.message : "Could not add track to catalog",
+        apiErrorText(e, "Could not add track to catalog"),
       ),
   });
 
@@ -213,7 +216,7 @@ export default function AdminTracks() {
     },
     onError: (e) =>
       setResolveError(
-        e instanceof ApiError ? e.message : "Could not add car to catalog",
+        apiErrorText(e, "Could not add car to catalog"),
       ),
   });
 
@@ -274,9 +277,7 @@ export default function AdminTracks() {
 
         {isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load catalog."}
+            {apiErrorText(error, "Could not load catalog.")}
           </div>
         )}
 
@@ -1271,7 +1272,7 @@ function EditTrackModal({
       await qc.invalidateQueries({ queryKey: ["admin", "catalog"] });
     } catch (e) {
       setImageError(
-        e instanceof ApiError ? e.message : "Image upload failed",
+        apiErrorText(e, "Image upload failed"),
       );
     } finally {
       setImageBusy(false);
@@ -1287,7 +1288,7 @@ function EditTrackModal({
       await qc.invalidateQueries({ queryKey: ["admin", "catalog"] });
     } catch (e) {
       setImageError(
-        e instanceof ApiError ? e.message : "Could not remove image",
+        apiErrorText(e, "Could not remove image"),
       );
     } finally {
       setImageBusy(false);

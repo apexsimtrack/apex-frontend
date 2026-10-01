@@ -5,7 +5,7 @@ import { ArrowLeft, CheckCircle } from "lucide-react";
 import PageMeta from "@/components/PageMeta";
 import { buildPageTitle } from "@/lib/seo";
 import { COMPANY_NAME } from "@/lib/siteMeta";
-import { apiGet, updateActivity, ApiError } from "@/lib/api";
+import { apiErrorText, apiGet, updateActivity, ApiError, withRequestId } from "@/lib/api";
 import type { ManualActivityRequest } from "@/lib/api";
 import {
   manualActivityInitialFromPublicDetail,
@@ -45,9 +45,10 @@ export default function EditActivity() {
   });
 
   const loadError = loadFailed
-    ? loadErr instanceof Error
-      ? loadErr.message
-      : "Failed to load session."
+    ? withRequestId(
+        loadErr instanceof Error ? loadErr.message : "Failed to load session.",
+        loadErr,
+      )
     : null;
 
   const [formState, setFormState] = useState<FormState>("idle");
@@ -72,9 +73,7 @@ export default function EditActivity() {
       }, 1000);
     } catch (err) {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : "Failed to update activity. Please try again.";
+        apiErrorText(err, "Failed to update activity. Please try again.");
       setErrorMessage(message);
       setFormState("error");
     }

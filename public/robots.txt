@@ -21,12 +21,11 @@ Disallow: /upload
 Disallow: /manual
 Disallow: /upgrade
 
-# Sessions list only (detail pages remain public)
-Disallow: /sessions$
-Allow: /sessions/
+# Sessions are sign-in only (list, detail, and the /session/:id alias)
+Disallow: /sessions
+Disallow: /session
 
-# Session edit & legacy paths
-Disallow: /sessions/*/edit
+# Legacy activity paths
 Disallow: /activity/
 
 # Internal / low SEO value

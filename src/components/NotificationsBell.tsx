@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { AppBaseModal } from "@/components/app-ui/AppBaseModal";
 import { Button } from "@/components/ui/button";
 import { RaceHistoryPagination } from "@/components/RaceHistoryPagination";
-import {
+import { withRequestId,
   acceptFollowRequest,
   ApiError,
   clearNotifications,
@@ -130,7 +130,7 @@ export function NotificationsBell() {
       toast.success("Marked all notifications as viewed.");
     } catch (e) {
       toast.error(
-        e instanceof Error ? e.message : "Could not update notifications.",
+        withRequestId(e instanceof Error ? e.message : "Could not update notifications.", e),
       );
     } finally {
       setMarkingViewed(false);
@@ -149,7 +149,7 @@ export function NotificationsBell() {
       );
     } catch (e) {
       toast.error(
-        e instanceof Error ? e.message : "Could not clear notifications.",
+        withRequestId(e instanceof Error ? e.message : "Could not clear notifications.", e),
       );
     } finally {
       setClearing(false);
@@ -168,11 +168,7 @@ export function NotificationsBell() {
       await queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     } catch (e) {
       const msg =
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
-            ? e.message
-            : "Could not approve request.";
+        withRequestId(e instanceof Error ? e.message : "Could not approve request.", e);
       toast.error(msg);
       void queryClient.invalidateQueries({ queryKey: FOLLOW_REQUESTS_KEY });
       void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
@@ -189,11 +185,7 @@ export function NotificationsBell() {
       await queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
     } catch (e) {
       const msg =
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
-            ? e.message
-            : "Could not decline request.";
+        withRequestId(e instanceof Error ? e.message : "Could not decline request.", e);
       toast.error(msg);
       void queryClient.invalidateQueries({ queryKey: FOLLOW_REQUESTS_KEY });
       void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });

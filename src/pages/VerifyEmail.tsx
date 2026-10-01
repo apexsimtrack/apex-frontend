@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { verifyEmail, resendVerificationCode, authMe } from "@/lib/api";
+import { verifyEmail, resendVerificationCode, authMe, withRequestId } from "@/lib/api";
 import { AUTH_ME_QUERY_KEY } from "@/contexts/AuthContext";
 import { prefetchAfterAuthRedirect } from "@/lib/profileQueryKeys";
 import type { WithRootError } from "@/lib/formWithRootError";
@@ -95,10 +95,12 @@ export default function VerifyEmail() {
           window.dispatchEvent(new Event("apex:auth"));
           form.setError("root", {
             type: "server",
-            message:
+            message: withRequestId(
               meErr instanceof Error
                 ? meErr.message
                 : "Could not load your session. Please try signing in.",
+              meErr,
+            ),
           });
           return;
         }
@@ -117,7 +119,10 @@ export default function VerifyEmail() {
         1500,
       );
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Verification failed.";
+      const msg = withRequestId(
+        err instanceof Error ? err.message : "Verification failed.",
+        err,
+      );
       form.setError("root", { type: "server", message: msg });
     } finally {
       setLoading(false);
@@ -146,14 +151,15 @@ export default function VerifyEmail() {
           : null);
       setResendCooldown(nextIn ?? RESEND_COOLDOWN_SEC);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to resend code.";
+      const raw = err instanceof Error ? err.message : "Failed to resend code.";
+      const msg = withRequestId(raw, err);
       if (
-        msg.toLowerCase().includes("expired") ||
-        msg.toLowerCase().includes("code")
+        raw.toLowerCase().includes("expired") ||
+        raw.toLowerCase().includes("code")
       ) {
         form.setError("root", {
           type: "server",
-          message: "Code expired. Request a new one.",
+          message: withRequestId("Code expired. Request a new one.", err),
         });
       } else {
         form.setError("root", { type: "server", message: msg });

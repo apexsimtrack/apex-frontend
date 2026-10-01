@@ -4,6 +4,7 @@ import type {
   Purchases as WebPurchases,
 } from "@revenuecat/purchases-js";
 import type { PurchasesPackage as NativeRevenueCatPackage } from "@revenuecat/purchases-capacitor";
+import { withRequestId } from "@/lib/api/errors";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   createBillingPortalSession,
@@ -17,6 +18,11 @@ import {
   currentBillingPlatform,
   nativeRevenueCatApiKey,
 } from "./billingPlatform";
+import {
+  BILLING_OFFERINGS_TIMEOUT_MESSAGE,
+  BILLING_REFRESH_TIMEOUT_MESSAGE,
+  withBillingTimeout,
+} from "./billingTimeout";
 import {
   assertPurchaseAllowed,
   clearBillingEligibilityCache,
@@ -47,9 +53,10 @@ function formatRefreshSyncWarning(error: unknown): string {
     error instanceof Error && error.message.trim()
       ? ` ${error.message.trim()}`
       : "";
-  return (
+  return withRequestId(
     "Your purchase completed, but we could not refresh your subscription status yet." +
-    `${detail} Access should update shortly after RevenueCat syncs, or after you refresh the page.`
+      `${detail} Access should update shortly after RevenueCat syncs, or after you refresh the page.`,
+    error,
   );
 }
 
@@ -102,6 +109,33 @@ function normalizeNativePackage(
     title: rcPackage.product.title,
     rawPackage: rcPackage,
   };
+}
+
+export async function loadNativeOfferings(params: {
+  apiKey: string;
+  userId: string;
+  email?: string | null;
+}): Promise<BillingPackage[]> {
+  const { purchases } = await ensureNativeRevenueCatIdentity(params);
+  const offerings = await withBillingTimeout(
+    purchases.getOfferings(),
+    BILLING_OFFERINGS_TIMEOUT_MESSAGE,
+  );
+  return (
+    offerings.current?.availablePackages.map(normalizeNativePackage) ?? []
+  );
+}
+
+export async function purchaseNativeBillingPackage(params: {
+  apiKey: string;
+  userId: string;
+  email?: string | null;
+  billingPackage: Extract<BillingPackage, { sdk: "native" }>;
+}): Promise<void> {
+  const { purchases } = await ensureNativeRevenueCatIdentity(params);
+  await purchases.purchasePackage({
+    aPackage: params.billingPackage.rawPackage,
+  });
 }
 
 async function ensureWebRevenueCatReady(params: {
@@ -213,15 +247,11 @@ export function useRevenueCat() {
     ],
     queryFn: async (): Promise<BillingPackage[]> => {
       if (isNative) {
-        const purchases = await ensureNativeRevenueCatIdentity({
+        return loadNativeOfferings({
           apiKey: nativeApiKey as string,
           userId: user?.id as string,
           email: user?.email ?? null,
         });
-        const offerings = await purchases.getOfferings();
-        return (
-          offerings.current?.availablePackages.map(normalizeNativePackage) ?? []
-        );
       }
 
       const purchases = await ensureWebRevenueCatReady({
@@ -229,7 +259,10 @@ export function useRevenueCat() {
         userId: user?.id as string,
         email: user?.email ?? null,
       });
-      const offerings = await purchases.getOfferings();
+      const offerings = await withBillingTimeout(
+        purchases.getOfferings(),
+        BILLING_OFFERINGS_TIMEOUT_MESSAGE,
+      );
       return (
         offerings.current?.availablePackages.map(normalizeWebPackage) ?? []
       );
@@ -245,7 +278,11 @@ export function useRevenueCat() {
   });
 
   const refreshMutation = useMutation({
-    mutationFn: refreshBillingSubscription,
+    mutationFn: () =>
+      withBillingTimeout(
+        refreshBillingSubscription(),
+        BILLING_REFRESH_TIMEOUT_MESSAGE,
+      ),
     onSuccess: async () => {
       await refreshUser();
       await queryClient.invalidateQueries({ queryKey: ["billing"] });
@@ -285,12 +322,12 @@ export function useRevenueCat() {
       await runMandatoryPurchasePreflight();
 
       if (rcPackage.sdk === "native") {
-        const purchases = await ensureNativeRevenueCatIdentity({
+        await purchaseNativeBillingPackage({
           apiKey: nativeApiKey as string,
           userId: user?.id as string,
           email: user?.email ?? null,
+          billingPackage: rcPackage,
         });
-        await purchases.purchasePackage({ aPackage: rcPackage.rawPackage });
       } else {
         const purchases = await ensureWebRevenueCatReady({
           config: billingConfigQuery.data as BillingConfigResponse,
@@ -315,7 +352,7 @@ export function useRevenueCat() {
         );
       }
       // Restore stays independent of purchase eligibility preflight.
-      const purchases = await ensureNativeRevenueCatIdentity({
+      const { purchases } = await ensureNativeRevenueCatIdentity({
         apiKey: nativeApiKey,
         userId: user.id,
         email: user.email ?? null,
@@ -367,6 +404,10 @@ export function useRevenueCat() {
     await eligibilityQuery.refetch();
   }
 
+  async function retryOfferings(): Promise<void> {
+    await offeringsQuery.refetch();
+  }
+
   return {
     billingConfig: billingConfigQuery.data ?? null,
     billingConfigQuery,
@@ -377,9 +418,9 @@ export function useRevenueCat() {
     eligibilityReady,
     eligibilityError:
       eligibilityQuery.error instanceof Error
-        ? eligibilityQuery.error.message
+        ? withRequestId(eligibilityQuery.error.message, eligibilityQuery.error)
         : eligibilityQuery.isError
-          ? BILLING_SYNC_RETRY_MESSAGE
+          ? withRequestId(BILLING_SYNC_RETRY_MESSAGE, eligibilityQuery.error)
           : null,
     retryEligibility,
     hasPaidPro: eligibilityHasPaidPro,
@@ -387,6 +428,13 @@ export function useRevenueCat() {
     manageActions,
     alreadyHaveProMessage: ALREADY_HAVE_PRO_MESSAGE,
     offeringsQuery,
+    offeringsError:
+      offeringsQuery.error instanceof Error
+        ? withRequestId(offeringsQuery.error.message, offeringsQuery.error)
+        : offeringsQuery.isError
+          ? withRequestId(BILLING_OFFERINGS_TIMEOUT_MESSAGE, offeringsQuery.error)
+          : null,
+    retryOfferings,
     availablePackages: offeringsQuery.data ?? [],
     purchasePackage: purchaseMutation.mutateAsync,
     isPurchasing: purchaseMutation.isPending,

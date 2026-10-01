@@ -9,7 +9,7 @@ import {
   type AdminDuplicateCluster,
   type AdminSessionListRow,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
@@ -416,7 +416,10 @@ export default function AdminSessions() {
               </div>
             ) : duplicatesQuery.isError ? (
               <p className="mt-4 text-sm text-destructive">
-                Failed to load duplicate clusters.
+                {withRequestId(
+                  "Failed to load duplicate clusters.",
+                  duplicatesQuery.error,
+                )}
               </p>
             ) : (duplicatesQuery.data?.clusters.length ?? 0) === 0 ? (
               <p className="mt-4 text-sm text-muted-foreground">
@@ -530,9 +533,7 @@ export default function AdminSessions() {
             )}
             {mergeDuplicatesMutation.isError && !mergeTarget && (
               <p className="mt-3 text-sm text-destructive">
-                {mergeDuplicatesMutation.error instanceof ApiError
-                  ? mergeDuplicatesMutation.error.message
-                  : "Merge failed."}
+                {apiErrorText(mergeDuplicatesMutation.error, "Merge failed.")}
               </p>
             )}
           </div>
@@ -540,9 +541,7 @@ export default function AdminSessions() {
 
         {isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load sessions."}
+            {apiErrorText(error, "Could not load sessions.")}
           </div>
         )}
 
@@ -971,9 +970,7 @@ export default function AdminSessions() {
           />
           {mergeDuplicatesMutation.isError && (
             <p className="mt-2 text-sm text-destructive">
-              {mergeDuplicatesMutation.error instanceof ApiError
-                ? mergeDuplicatesMutation.error.message
-                : "Merge failed."}
+              {apiErrorText(mergeDuplicatesMutation.error, "Merge failed.")}
             </p>
           )}
         </BaseAlertDialog>
@@ -1039,9 +1036,7 @@ export default function AdminSessions() {
           />
           {bulkDeleteMutation.isError && (
             <p className="mt-2 text-sm text-destructive">
-              {bulkDeleteMutation.error instanceof ApiError
-                ? bulkDeleteMutation.error.message
-                : "Delete failed."}
+              {apiErrorText(bulkDeleteMutation.error, "Delete failed.")}
             </p>
           )}
         </BaseAlertDialog>

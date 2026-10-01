@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { withRequestId } from "@/lib/api/errors";
 import {
   appDestructiveButtonClassName,
   appOutlineButtonClassName,
@@ -40,9 +41,12 @@ export default function DeleteConfirmModal({
       await onConfirm();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to delete. Please try again.",
+        withRequestId(
+          err instanceof Error
+            ? err.message
+            : "Failed to delete. Please try again.",
+          err,
+        ),
       );
       setIsDeleting(false);
     }

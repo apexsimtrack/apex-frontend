@@ -22,11 +22,12 @@ import {
   type DiscussionCategory,
   type DiscussionListSort,
 } from "@/lib/api/community";
+import { withRequestId } from "@/lib/api/errors";
 import { toast } from "sonner";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { cn } from "@/lib/utils";
 import PageMeta from "@/components/PageMeta";
-import { COMPANY_NAME } from "@/lib/siteMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AuthRedirectState } from "@/auth/authRedirect";
 import { AUTH_PATHS } from "@/config/navigation";
@@ -37,9 +38,7 @@ import {
 } from "@/lib/validation/community";
 import NewDiscussionModal from "@/pages/community/NewDiscussionModal";
 
-const COMMUNITY_PATH = "/community";
-const communityTitle = `Community | ${COMPANY_NAME}`;
-const communityDescription = `Sim racing discussions, setups, and strategy on ${COMPANY_NAME}.`;
+const COMMUNITY_PATH = STATIC_SEO.community.path;
 
 const DESCRIPTION_TRUNCATE = 160;
 
@@ -156,9 +155,12 @@ export default function Community() {
   );
 
   const error = discussionsQueryError
-    ? discussionsQueryError instanceof Error
-      ? discussionsQueryError.message
-      : "Failed to load discussions."
+    ? withRequestId(
+        discussionsQueryError instanceof Error
+          ? discussionsQueryError.message
+          : "Failed to load discussions.",
+        discussionsQueryError,
+      )
     : null;
 
   const listRefetching = isFetching && !isFetchingNextPage && !loading;
@@ -177,9 +179,12 @@ export default function Community() {
           await uploadDiscussionImage(created.id, newDiscussionImage);
         } catch (imgErr) {
           toast.error(
-            imgErr instanceof Error
-              ? imgErr.message
-              : "Discussion created, but image upload failed.",
+            withRequestId(
+              imgErr instanceof Error
+                ? imgErr.message
+                : "Discussion created, but image upload failed.",
+              imgErr,
+            ),
           );
         }
       }
@@ -196,8 +201,10 @@ export default function Community() {
       console.error(e);
       newDiscussionForm.setError("root", {
         type: "server",
-        message:
+        message: withRequestId(
           e instanceof Error ? e.message : "Failed to create discussion.",
+          e,
+        ),
       });
     } finally {
       setCreating(false);
@@ -247,8 +254,8 @@ export default function Community() {
   return (
     <>
       <PageMeta
-        title={communityTitle}
-        description={communityDescription}
+        title={STATIC_SEO.community.title}
+        description={STATIC_SEO.community.description}
         path={COMMUNITY_PATH}
       />
       <div className="relative mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 pb-28 pt-8 lg:pb-8">

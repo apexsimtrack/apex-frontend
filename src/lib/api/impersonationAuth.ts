@@ -31,6 +31,7 @@ export async function postStopImpersonation(): Promise<StopImpersonationResponse
 
 /** Stop impersonation via API, falling back to localStorage admin backups. */
 export async function exitImpersonationSession(): Promise<boolean> {
+  let apiError: unknown;
   try {
     const data = await postStopImpersonation();
     if (typeof data?.token === "string" && data.token.trim()) {
@@ -42,12 +43,13 @@ export async function exitImpersonationSession(): Promise<boolean> {
       dispatchExitImpersonation();
       return true;
     }
-  } catch {
-    // Local backups still restore the admin without a round-trip.
+  } catch (err) {
+    apiError = err;
   }
   if (restoreAdminCredentialsFromBackup()) {
     dispatchExitImpersonation();
     return true;
   }
+  if (apiError) throw apiError;
   return false;
 }

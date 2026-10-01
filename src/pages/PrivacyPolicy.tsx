@@ -1,11 +1,8 @@
 import { Link } from "react-router-dom";
 import PageMeta from "@/components/PageMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { COMPANY_NAME, SITE_ORIGIN } from "@/lib/siteMeta";
 import { SUPPORT_EMAIL } from "@/lib/appConfig";
-
-const PRIVACY_PATH = "/privacy-policy";
-const title = `Privacy Policy | ${COMPANY_NAME}`;
-const description = `How ${COMPANY_NAME} collects, uses, and retains personal data across our web app, mobile app, and desktop Agent.`;
 
 const linkClassName =
   "text-apex-primary transition-colors hover:text-apex-primary/80";
@@ -27,9 +24,9 @@ export default function PrivacyPolicy() {
   return (
     <>
       <PageMeta
-        title={title}
-        description={description}
-        path={PRIVACY_PATH}
+        title={STATIC_SEO.privacy.title}
+        description={STATIC_SEO.privacy.description}
+        path={STATIC_SEO.privacy.path}
       />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">
         <article className="mx-auto w-full max-w-3xl">

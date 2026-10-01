@@ -27,16 +27,12 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
+    <!--seo:start-->
     <meta
       name="description"
       content="Apex: session logging, telemetry, leaderboards, challenges, community, and Apex Analysis coaching — one place for every sim you run."
     />
-    <meta
-      name="keywords"
-      content="Apex, sim racing, racing simulator, iRacing, F1, Assetto Corsa, leaderboards, lap times, race telemetry"
-    />
     <meta name="robots" content="index, follow" />
-
     <meta property="og:site_name" content="Apex" />
     <meta property="og:title" content="Apex — Sim racing performance hub" />
     <meta
@@ -45,19 +41,47 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://apexsimtracker.com/" />
-    <meta property="og:image" content="https://apexsimtracker.com/logo.png" />
-
+    <meta property="og:image" content="https://apexsimtracker.com/og-default.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Apex — Sim racing performance hub" />
     <meta
       name="twitter:description"
       content="Apex: session logging, telemetry, leaderboards, challenges, community, and Apex Analysis coaching — one place for every sim you run."
     />
-    <meta name="twitter:image" content="https://apexsimtracker.com/logo.png" />
-
-    <link rel="icon" type="image/png" href="/logo.png?v=5" />
-    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <meta name="twitter:image" content="https://apexsimtracker.com/og-default.png" />
+    <link rel="canonical" href="https://apexsimtracker.com/" />
+    <script type="application/ld+json" data-apex-jsonld="site">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "Apex",
+            "url": "https://apexsimtracker.com/",
+            "logo": "https://apexsimtracker.com/icon-512.png"
+          },
+          {
+            "@type": "WebSite",
+            "name": "Apex",
+            "url": "https://apexsimtracker.com/"
+          }
+        ]
+      }
+    </script>
     <title>Apex — Sim racing performance hub</title>
+    <!--seo:end-->
+
+    <!--
+      Favicons. Google Search requires a stable URL and a square icon whose
+      side is a multiple of 48px; /favicon.ico is its fallback when the
+      <link rel="icon"> is rejected, so both must carry the Apex emblem.
+    -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0e0e0e" />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
   </head>
   <body>
     <div id="root"></div>
