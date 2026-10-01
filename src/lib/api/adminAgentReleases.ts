@@ -5,6 +5,7 @@ import {
   notifyAuthExpired,
 } from "./fetchClient";
 import { ApiError } from "./errors";
+import { responseRequestId } from "./requestId";
 
 export type AgentOs = "macos" | "windows" | "linux";
 export type AgentDownloadOutcome = "success" | "denied" | "error";
@@ -138,21 +139,52 @@ export async function publishAdminAgentRelease(
         const status = xhr.status;
         const text = xhr.responseText ?? "";
 
+        const requestHeader = xhr.getResponseHeader("X-Request-Id");
         if (status >= 200 && status < 300) {
           if (!text.trim()) {
-            reject(new ApiError(500, "No response from server"));
+            reject(
+              new ApiError(
+                500,
+                "No response from server",
+                undefined,
+                undefined,
+                responseRequestId(requestHeader, undefined),
+              ),
+            );
             return;
           }
           try {
             resolve(JSON.parse(text) as AdminAgentReleaseRow);
           } catch {
-            reject(new ApiError(500, "Invalid response from server"));
+            reject(
+              new ApiError(
+                500,
+                "Invalid response from server",
+                undefined,
+                undefined,
+                responseRequestId(requestHeader, undefined),
+              ),
+            );
           }
           return;
         }
 
         await notifyAuthExpired(false, status);
-        reject(new ApiError(status, parsePublishErrorPayload(text, status)));
+        let body: unknown;
+        try {
+          body = JSON.parse(text) as unknown;
+        } catch {
+          body = undefined;
+        }
+        reject(
+          new ApiError(
+            status,
+            parsePublishErrorPayload(text, status),
+            undefined,
+            undefined,
+            responseRequestId(requestHeader, body),
+          ),
+        );
       })();
     };
 
@@ -162,6 +194,28 @@ export async function publishAdminAgentRelease(
 
     xhr.send(form);
   });
+}
+
+export async function fetchAdminAgentMinUploadVersion(): Promise<{
+  version: string | null;
+}> {
+  return fetchApi(
+    "GET",
+    "/api/admin/agent/min-upload-version",
+    undefined,
+    false,
+  );
+}
+
+export async function setAdminAgentMinUploadVersion(
+  version: string | null,
+): Promise<{ version: string | null }> {
+  return fetchApi(
+    "PATCH",
+    "/api/admin/agent/min-upload-version",
+    { version },
+    false,
+  );
 }
 
 export async function activateAdminAgentRelease(

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AudiencePicker } from "./AudiencePicker";
 import {
+  apiErrorText,
   ApiError,
   createCampaign,
   type AudienceDescriptor,
@@ -97,7 +98,7 @@ export function CampaignComposeModal({ onClose, onSent }: Props) {
       });
       await onSent();
     } catch (e) {
-      setErr(e instanceof ApiError ? e.message : "Failed to send campaign");
+      setErr(apiErrorText(e, "Failed to send campaign"));
     } finally {
       setPending(false);
     }

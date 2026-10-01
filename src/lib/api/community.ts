@@ -2,6 +2,7 @@ import { apiGet, apiPost, apiDelete, apiPatch } from "./httpVerbs";
 import { buildApiAuthHeaders } from "./fetchClient";
 import { API_BASE } from "./config";
 import { ApiError } from "./errors";
+import { responseRequestId } from "./requestId";
 
 // Community discussions — category query params match backend: all | setup | guides | general
 export const DISCUSSION_CATEGORIES = [
@@ -214,11 +215,13 @@ export async function uploadDiscussionImage(
 
   if (!res.ok) {
     let message = "Image upload failed";
+    let body: unknown;
     try {
       const text = await res.text();
       if (text) {
         try {
           const json = JSON.parse(text) as { message?: string; error?: string };
+          body = json;
           message = json.message ?? json.error ?? message;
         } catch {
           message = text;
@@ -227,7 +230,13 @@ export async function uploadDiscussionImage(
     } catch {
       // keep default
     }
-    throw new ApiError(res.status, message);
+    throw new ApiError(
+      res.status,
+      message,
+      undefined,
+      undefined,
+      responseRequestId(res.headers.get("x-request-id"), body),
+    );
   }
 
   return (await res.json()) as { imageUrl: string | null };

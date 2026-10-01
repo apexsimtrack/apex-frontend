@@ -50,7 +50,9 @@ type ProPlanCardProps = {
   offeringsPending: boolean;
   eligibilityPending?: boolean;
   eligibilityError?: string | null;
+  offeringsError?: string | null;
   onRetryEligibility?: () => void;
+  onRetryOfferings?: () => void;
   isPurchasing: boolean;
   isRestoringPurchases: boolean;
   isOpeningBillingPortal: boolean;
@@ -91,7 +93,9 @@ export function ProPlanCard({
   offeringsPending,
   eligibilityPending = false,
   eligibilityError = null,
+  offeringsError = null,
   onRetryEligibility,
+  onRetryOfferings,
   isPurchasing,
   isRestoringPurchases,
   isOpeningBillingPortal,
@@ -144,8 +148,7 @@ export function ProPlanCard({
       "Purchases are handled securely by your device's app store.")
     : null;
 
-  const checkoutBlocked =
-    Boolean(eligibilityError) || eligibilityPending || offeringsPending;
+  const checkoutBlocked = eligibilityPending || offeringsPending;
 
   return (
     <div
@@ -324,6 +327,26 @@ export function ProPlanCard({
                 className={cn("w-full", appOutlineButtonClassName)}
                 onClick={onRetryEligibility}
                 data-testid="billing-eligibility-retry"
+              >
+                Retry sync
+              </Button>
+            )}
+          </div>
+        ) : offeringsError ? (
+          <div className="space-y-3">
+            <p
+              className="rounded-apex-sm border border-apex-error/25 bg-apex-error/10 px-3 py-2 font-apex-body text-sm text-apex-error"
+              data-testid="billing-offerings-error"
+            >
+              {offeringsError}
+            </p>
+            {onRetryOfferings && (
+              <Button
+                type="button"
+                variant="outline"
+                className={cn("w-full", appOutlineButtonClassName)}
+                onClick={onRetryOfferings}
+                data-testid="billing-offerings-retry"
               >
                 Retry sync
               </Button>

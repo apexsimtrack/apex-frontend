@@ -7,18 +7,15 @@ import PublicHomeFaqStrip from "./public-home/PublicHomeFaqStrip";
 import PublicHomeHero from "./public-home/PublicHomeHero";
 import PublicHomeProSection from "./public-home/PublicHomeProSection";
 import PublicHomeSimsSection from "./public-home/PublicHomeSimsSection";
-import {
-  PUBLIC_HOME_DESCRIPTION,
-  PUBLIC_HOME_TITLE,
-  PUBLIC_HOME_PATH,
-} from "./public-home/publicHomeShared";
+import { STATIC_SEO } from "@/config/seoMeta";
+import { PUBLIC_HOME_PATH } from "./public-home/publicHomeShared";
 
 export default function PublicHome() {
   return (
     <>
       <PageMeta
-        title={PUBLIC_HOME_TITLE}
-        description={PUBLIC_HOME_DESCRIPTION}
+        title={STATIC_SEO.home.title}
+        description={STATIC_SEO.home.description}
         path={PUBLIC_HOME_PATH}
       />
       <div className="relative w-full overflow-x-hidden">

@@ -11,7 +11,7 @@ import {
   type AdminUserFollowListRow,
   type AdminUserSocialGraph,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
@@ -502,7 +502,7 @@ export default function AdminFollowUserDetail() {
     },
     onError: (e) => {
       setRemoveError(
-        e instanceof ApiError ? e.message : "Could not remove follow",
+        apiErrorText(e, "Could not remove follow"),
       );
     },
   });
@@ -519,7 +519,7 @@ export default function AdminFollowUserDetail() {
     },
     onError: (e) => {
       setRemoveError(
-        e instanceof ApiError ? e.message : "Could not decline follow request",
+        apiErrorText(e, "Could not decline follow request"),
       );
     },
   });
@@ -576,7 +576,7 @@ export default function AdminFollowUserDetail() {
       {isPending && <p className="text-muted-foreground">Loading…</p>}
       {isError && (
         <p className="text-destructive">
-          {error instanceof ApiError ? error.message : "Failed to load."}
+          {apiErrorText(error, "Failed to load.")}
         </p>
       )}
 

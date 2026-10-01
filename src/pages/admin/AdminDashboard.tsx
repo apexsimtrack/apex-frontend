@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { Loader2, RefreshCw } from "lucide-react";
 import {
+  apiErrorText,
   fetchAdminAccountsMetrics,
   fetchAdminAuthSignalsMetrics,
   fetchAdminCommunityMetrics,
@@ -184,9 +185,7 @@ function SectionSkeleton({ count }: { count: number }) {
 
 function SectionError({ error }: { error: unknown }) {
   const message =
-    error instanceof ApiError
-      ? error.message
-      : "Could not load this section. Try again later.";
+    apiErrorText(error, "Could not load this section. Try again later.");
   return (
     <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
       {message}

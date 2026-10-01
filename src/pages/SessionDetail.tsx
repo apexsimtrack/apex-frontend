@@ -11,7 +11,7 @@ import {
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
 import { deleteSession, patchSessionCaption } from "@/lib/api/manualAndUpload";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { publicSessionUrl } from "@/lib/siteMeta";
@@ -319,9 +319,12 @@ export default function SessionDetail() {
   const deniedMessage = sessionDetailDeniedMessage(queryError);
   const errorMessage = isError
     ? (deniedMessage ??
-      (queryError instanceof Error
-        ? queryError.message
-        : "Failed to load session."))
+      withRequestId(
+        queryError instanceof Error
+          ? queryError.message
+          : "Failed to load session.",
+        queryError,
+      ))
     : null;
 
   if (errorMessage || !session) {
@@ -489,9 +492,7 @@ export default function SessionDetail() {
       navigate(SESSIONS_PATH);
     } catch (err) {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : "Failed to delete session. Please try again.";
+        apiErrorText(err, "Failed to delete session. Please try again.");
       throw new Error(message);
     }
   }
@@ -520,9 +521,7 @@ export default function SessionDetail() {
       return true;
     } catch (err) {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : "Failed to save caption. Please try again.";
+        apiErrorText(err, "Failed to save caption. Please try again.");
       toast.error(message);
       return false;
     } finally {
@@ -536,6 +535,7 @@ export default function SessionDetail() {
         title={sessionShareTitle}
         description={sessionShareText}
         path={detailPath}
+        noindex
       />
 
       <PageShell fromHome={fromHome}>

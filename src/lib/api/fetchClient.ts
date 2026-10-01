@@ -8,6 +8,7 @@ import {
   setToken,
 } from "@/auth/token";
 import { ApiError, ProRequiredError } from "./errors";
+import { createApexRequestId, responseRequestId } from "./requestId";
 import { recordApiTiming } from "@/lib/apexRum";
 import {
   applyRestoredAdminCredentials,
@@ -54,6 +55,7 @@ type ErrorParseResult = {
   code?: string;
   retryAfterMs?: number;
   suspensionReason?: string | null;
+  requestId?: string;
 };
 
 const TOKEN_KEY = "apex_token";
@@ -64,7 +66,9 @@ const AUTH_REFRESH_PATH = "/api/auth/refresh";
  * JWT must pair with X-Apex-Session for sessionAuthHook routes.
  */
 export function buildApiAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    "X-Request-Id": createApexRequestId(),
+  };
   if (typeof localStorage === "undefined") return headers;
 
   const token = localStorage.getItem(TOKEN_KEY);
@@ -84,7 +88,13 @@ export async function extractErrorInfo(
 ): Promise<ErrorParseResult> {
   try {
     const text = await res.text();
-    if (!text) return { message: "Request failed" };
+    const headerId = res.headers.get("x-request-id");
+    if (!text) {
+      return {
+        message: "Request failed",
+        requestId: responseRequestId(headerId, undefined),
+      };
+    }
     try {
       const json = JSON.parse(text) as Record<string, unknown>;
       const retryRaw = json.retryAfterMs;
@@ -99,10 +109,14 @@ export async function extractErrorInfo(
         message: (json.message as string) || (json.error as string) || text,
         code: json.code as string | undefined,
         retryAfterMs,
+        requestId: responseRequestId(headerId, json),
         ...(suspensionReason !== undefined ? { suspensionReason } : {}),
       };
     } catch {
-      return { message: text };
+      return {
+        message: text,
+        requestId: responseRequestId(headerId, undefined),
+      };
     }
   } catch {
     return { message: "Request failed" };
@@ -160,6 +174,7 @@ async function restoreAdminAfterImpersonation401(): Promise<boolean> {
       try {
         const headers: Record<string, string> = {
           Authorization: `Bearer ${token}`,
+          "X-Request-Id": createApexRequestId(),
         };
         if (backupSession) {
           headers["X-Apex-Impersonator-Session"] = backupSession;
@@ -334,13 +349,15 @@ export async function fetchApi<T>(
     return parseSuccessBody<T>(text);
   }
 
-  const { message, code, retryAfterMs, suspensionReason } =
+  const { message, code, retryAfterMs, suspensionReason, requestId } =
     await extractErrorInfo(res);
 
   // Handle PRO_REQUIRED error code - throw specific error type
   if (code === "PRO_REQUIRED") {
     emitProRequiredEvent();
-    throw new ProRequiredError(message);
+    const proError = new ProRequiredError(message);
+    proError.requestId = requestId;
+    throw proError;
   }
 
   const shouldTryImpersonationRestore =
@@ -362,6 +379,7 @@ export async function fetchApi<T>(
         "Impersonation ended — you are back in your admin account.",
         code,
         retryAfterMs,
+        requestId,
       );
     }
   }
@@ -402,7 +420,7 @@ export async function fetchApi<T>(
 
   await notifyAuthExpired(skipAuthExpiredCheck, res.status);
 
-  const err = new ApiError(res.status, message, code, retryAfterMs);
+  const err = new ApiError(res.status, message, code, retryAfterMs, requestId);
   if (suspensionReason !== undefined) {
     err.suspensionReason = suspensionReason;
   }

@@ -1,4 +1,4 @@
-import { COMPANY_NAME, SITE_ORIGIN } from "@/lib/siteMeta";
+import { COMPANY_NAME, SITE_ORIGIN } from "./siteMeta";
 
 const DEFAULT_TITLE_MAX = 60;
 const DEFAULT_DESCRIPTION_MAX = 160;

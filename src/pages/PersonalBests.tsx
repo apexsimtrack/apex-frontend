@@ -10,7 +10,7 @@ import {
   isProRequiredError,
 } from "@/lib/api";
 import { useIsProUser } from "@/contexts/AuthContext";
-import { ApiError } from "@/lib/api/errors";
+import { ApiError, withRequestId } from "@/lib/api/errors";
 import PersonalBestsProLocked from "./personal-bests/PersonalBestsProLocked";
 import PersonalBestsSummary from "./personal-bests/PersonalBestsSummary";
 import PersonalBestsList from "./personal-bests/PersonalBestsList";
@@ -164,9 +164,12 @@ export default function PersonalBests() {
         ) : error && !isProRequiredError(error) ? (
           <div className="rounded-apex-lg border border-apex-outline-variant/10 bg-apex-surface-container-low p-6 text-center">
             <p className="font-apex-body text-sm text-apex-error">
-              {error instanceof Error
-                ? error.message
-                : "Could not load personal bests."}
+              {withRequestId(
+                error instanceof Error
+                  ? error.message
+                  : "Could not load personal bests.",
+                error,
+              )}
             </p>
           </div>
         ) : showInitialEmpty ? (

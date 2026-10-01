@@ -3,15 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { getLeaderboards, type LeaderboardRow } from "@/lib/api";
+import { withRequestId } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 import PageMeta from "@/components/PageMeta";
 import UserAvatar from "@/components/UserAvatar";
-import { COMPANY_NAME } from "@/lib/siteMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import LeaderboardsListSkeleton from "@/pages/leaderboards/LeaderboardsListSkeleton";
 
-const LEADERBOARDS_PATH = "/leaderboards";
-const leaderboardsTitle = `Leaderboards | ${COMPANY_NAME}`;
-const leaderboardsDescription = `Global sim racing leaderboards on ${COMPANY_NAME}: wins, races, podiums, most laps, and more.`;
+const LEADERBOARDS_PATH = STATIC_SEO.leaderboards.path;
 
 const TAB_METRICS = {
   wins: "wins",
@@ -80,16 +79,16 @@ export default function Leaderboards() {
   const updating = isFetching && !loading;
   const err =
     error instanceof Error
-      ? error.message
+      ? withRequestId(error.message, error)
       : isError
-        ? "Failed to load leaderboard."
+        ? withRequestId("Failed to load leaderboard.", error)
         : null;
 
   return (
     <>
       <PageMeta
-        title={leaderboardsTitle}
-        description={leaderboardsDescription}
+        title={STATIC_SEO.leaderboards.title}
+        description={STATIC_SEO.leaderboards.description}
         path={LEADERBOARDS_PATH}
       />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">

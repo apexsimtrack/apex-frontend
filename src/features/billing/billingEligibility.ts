@@ -11,11 +11,16 @@ import {
   ALREADY_HAVE_PRO_MESSAGE,
   BILLING_SYNC_RETRY_MESSAGE,
 } from "./subscriptionManagement";
+import { ApiError } from "@/lib/api/errors";
 import { ensureNativeRevenueCatIdentity } from "./revenueCatNativeIdentity";
 import {
   currentBillingPlatform,
   nativeRevenueCatApiKey,
 } from "./billingPlatform";
+import {
+  BILLING_REFRESH_TIMEOUT_MESSAGE,
+  withBillingTimeout,
+} from "./billingTimeout";
 
 export type BillingEligibilityResult = {
   hasPaidPro: boolean;
@@ -28,7 +33,7 @@ type EnsureBillingEligibilityParams = {
   email?: string | null;
   /** Re-run refresh even if this user already completed a soft preflight. */
   forceRefresh?: boolean;
-  /** Identify native RC before refresh. No-op on web / missing native key. */
+  /** Start native RC identity without blocking the API eligibility refresh. */
   identifyNative?: boolean;
   refreshFn?: () => Promise<BillingRefreshResponse>;
   identifyNativeFn?: (params: {
@@ -41,15 +46,14 @@ let softCache: {
   userId: string;
   result: BillingEligibilityResult;
 } | null = null;
-let inFlight: {
-  userId: string;
-  forceRefresh: boolean;
-  promise: Promise<BillingEligibilityResult>;
-} | null = null;
+const inFlightByUser = new Map<
+  string,
+  Promise<BillingEligibilityResult>
+>();
 
 export function resetBillingEligibilityForTests(): void {
   softCache = null;
-  inFlight = null;
+  inFlightByUser.clear();
 }
 
 export function clearBillingEligibilityCache(): void {
@@ -74,7 +78,8 @@ function mapRefreshToEligibility(
 }
 
 /**
- * Identity (native) then POST /api/billing/refresh.
+ * Start native identity in the background, then POST /api/billing/refresh.
+ * Store identity failures must not prevent server-backed eligibility.
  * Soft results are cached per user; `forceRefresh` always hits the API (purchase guard).
  */
 export async function ensureBillingEligibility(
@@ -83,40 +88,47 @@ export async function ensureBillingEligibility(
   const forceRefresh = params.forceRefresh === true;
   const identifyNative = params.identifyNative === true;
 
-  if (!forceRefresh && softCache?.userId === params.userId) {
-    return softCache.result;
+  const existing = inFlightByUser.get(params.userId);
+  if (existing) {
+    return existing;
   }
 
-  if (
-    inFlight &&
-    inFlight.userId === params.userId &&
-    inFlight.forceRefresh === forceRefresh
-  ) {
-    return inFlight.promise;
+  if (!forceRefresh && softCache?.userId === params.userId) {
+    return softCache.result;
   }
 
   const promise = (async (): Promise<BillingEligibilityResult> => {
     try {
       if (identifyNative) {
-        if (params.identifyNativeFn) {
-          await params.identifyNativeFn({
-            userId: params.userId,
-            email: params.email ?? null,
-          });
-        } else {
-          const platform = currentBillingPlatform();
-          const apiKey = nativeRevenueCatApiKey(platform);
-          if (platform !== "web" && apiKey) {
-            await ensureNativeRevenueCatIdentity({
-              userId: params.userId,
-              email: params.email ?? null,
-            });
+        try {
+          const identityPromise = params.identifyNativeFn
+            ? params.identifyNativeFn({
+                userId: params.userId,
+                email: params.email ?? null,
+              })
+            : (() => {
+                const platform = currentBillingPlatform();
+                const apiKey = nativeRevenueCatApiKey(platform);
+                if (platform === "web" || !apiKey) return null;
+                return ensureNativeRevenueCatIdentity({
+                  userId: params.userId,
+                  email: params.email ?? null,
+                });
+              })();
+          if (identityPromise) {
+            void identityPromise.catch(() => undefined);
           }
+        } catch {
+          // Eligibility comes from the API; store identity is required later
+          // by offerings, purchase, and restore, where failures are surfaced.
         }
       }
 
       const refreshFn = params.refreshFn ?? refreshBillingSubscription;
-      const refresh = await refreshFn();
+      const refresh = await withBillingTimeout(
+        refreshFn(),
+        BILLING_REFRESH_TIMEOUT_MESSAGE,
+      );
       const result = mapRefreshToEligibility(refresh);
       softCache = { userId: params.userId, result };
       return result;
@@ -125,20 +137,29 @@ export async function ensureBillingEligibility(
         error instanceof Error && error.message.trim()
           ? error.message.trim()
           : "";
-      throw new Error(
+      const message =
         detail && detail !== BILLING_SYNC_RETRY_MESSAGE
           ? `${BILLING_SYNC_RETRY_MESSAGE} (${detail})`
-          : BILLING_SYNC_RETRY_MESSAGE,
-      );
+          : BILLING_SYNC_RETRY_MESSAGE;
+      if (error instanceof ApiError && error.requestId) {
+        throw new ApiError(
+          error.status,
+          message,
+          error.code,
+          error.retryAfterMs,
+          error.requestId,
+        );
+      }
+      throw new Error(message);
     }
   })();
 
-  inFlight = { userId: params.userId, forceRefresh, promise };
+  inFlightByUser.set(params.userId, promise);
   try {
     return await promise;
   } finally {
-    if (inFlight?.promise === promise) {
-      inFlight = null;
+    if (inFlightByUser.get(params.userId) === promise) {
+      inFlightByUser.delete(params.userId);
     }
   }
 }

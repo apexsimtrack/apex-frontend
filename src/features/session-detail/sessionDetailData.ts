@@ -3,7 +3,7 @@
  *
  * Uses React Query key `["sessions","detail",id]` and endpoint `/api/sessions/:id`.
  */
-import { apiGet, ApiError } from "@/lib/api";
+import { apiGet, ApiError, withRequestId } from "@/lib/api";
 import {
   coerceSessionDetailLaps,
   type LapTimingHighlights,
@@ -323,12 +323,24 @@ export function sessionDetailDeniedMessage(error: unknown): string | null {
   if (error.status !== 403) return null;
   switch (error.code) {
     case "SESSION_HISTORY_LOCKED":
-      return "This session is outside the free plan history window. Upgrade to Apex Pro for unlimited session access.";
+      return withRequestId(
+        "This session is outside the free plan history window. Upgrade to Apex Pro for unlimited session access.",
+        error,
+      );
     case "SESSION_VISIBILITY_PRIVATE":
-      return "This session is private. Only the driver can view it.";
+      return withRequestId(
+        "This session is private. Only the driver can view it.",
+        error,
+      );
     case "SESSION_VISIBILITY_FOLLOWERS_ONLY":
-      return "This session is limited to the driver's followers. Sign in and follow them to view it, or ask the driver to change session visibility in settings.";
+      return withRequestId(
+        "This session is limited to the driver's followers. Sign in and follow them to view it, or ask the driver to change session visibility in settings.",
+        error,
+      );
     default:
-      return error.message || "You don’t have access to this session.";
+      return withRequestId(
+        error.message || "You don’t have access to this session.",
+        error,
+      );
   }
 }

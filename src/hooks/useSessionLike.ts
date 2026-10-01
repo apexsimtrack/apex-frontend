@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiPost } from "@/lib/api/httpVerbs";
+import { withRequestId } from "@/lib/api/errors";
 import { patchSessionSocialCaches } from "@/lib/sessionSocialCache";
 
 export function useSessionLike(
@@ -33,12 +34,12 @@ export function useSessionLike(
         likedByMe: Boolean(data.liked),
         likeCount: Number(data.likeCount ?? 0),
       });
-    } catch {
+    } catch (e) {
       patchSessionSocialCaches(queryClient, sid, {
         likedByMe: prevLiked,
         likeCount: prevCount,
       });
-      toast.error("Could not update like. Please try again.");
+      toast.error(withRequestId("Could not update like. Please try again.", e));
     } finally {
       setLikePending(false);
     }

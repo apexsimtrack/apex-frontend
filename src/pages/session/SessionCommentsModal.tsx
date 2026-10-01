@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import {
   apiPost,
   ApiError,
+  withRequestId,
   getSessionCommentsPage,
   createSessionComment,
   updateSessionComment,
@@ -108,6 +109,7 @@ export function SessionCommentsModal({
   const {
     data: commentsPage,
     isPending: commentsLoading,
+    error: commentsQueryError,
     isError: commentsFailed,
     refetch,
   } = useQuery({
@@ -150,7 +152,10 @@ export function SessionCommentsModal({
         };
 
   const commentsError = commentsFailed
-    ? "Can't load comments. Backend may be offline."
+    ? withRequestId(
+        "Can't load comments. Backend may be offline.",
+        commentsQueryError,
+      )
     : null;
 
   const hasActiveFilters = filter !== "all" || searchInput.trim().length > 0;
@@ -178,10 +183,12 @@ export function SessionCommentsModal({
     },
     onError: (err: unknown) => {
       if (err instanceof ApiError && err.message.trim()) {
-        setCommentError(err.message);
+        setCommentError(withRequestId(err.message, err));
         return;
       }
-      setCommentError("Can't post right now. Backend may be offline.");
+      setCommentError(
+        withRequestId("Can't post right now. Backend may be offline.", err),
+      );
     },
   });
 
@@ -236,7 +243,7 @@ export function SessionCommentsModal({
       if (ctx?.previous)
         queryClient.setQueryData(commentsQueryKey, ctx.previous);
       setThreadReplyError(
-        err instanceof Error ? err.message : "Failed to post reply.",
+        withRequestId(err instanceof Error ? err.message : "Failed to post reply.", err),
       );
     },
     onSuccess: () => {
@@ -295,7 +302,7 @@ export function SessionCommentsModal({
       if (ctx?.previous)
         queryClient.setQueryData(commentsQueryKey, ctx.previous);
       setCommentEditError(
-        err instanceof Error ? err.message : "Failed to edit comment.",
+        withRequestId(err instanceof Error ? err.message : "Failed to edit comment.", err),
       );
     },
     onSuccess: () => {

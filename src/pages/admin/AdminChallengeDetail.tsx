@@ -13,7 +13,7 @@ import {
   updateAdminChallengeBan,
   uploadAdminChallengeCover,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
@@ -354,7 +354,7 @@ export default function AdminChallengeDetail() {
       await qc.invalidateQueries({ queryKey: ["challenges"] });
     },
     onError: (e) => {
-      setFormError(e instanceof ApiError ? e.message : "Save failed");
+      setFormError(apiErrorText(e, "Save failed"));
     },
   });
 
@@ -367,7 +367,7 @@ export default function AdminChallengeDetail() {
       await qc.invalidateQueries({ queryKey: ["admin", "challenges"] });
     },
     onError: (e) => {
-      setCoverError(e instanceof ApiError ? e.message : "Cover upload failed");
+      setCoverError(apiErrorText(e, "Cover upload failed"));
     },
   });
 
@@ -380,7 +380,7 @@ export default function AdminChallengeDetail() {
       await qc.invalidateQueries({ queryKey: ["admin", "challenges"] });
     },
     onError: (e) => {
-      setCoverError(e instanceof ApiError ? e.message : "Remove cover failed");
+      setCoverError(apiErrorText(e, "Remove cover failed"));
     },
   });
 
@@ -430,7 +430,7 @@ export default function AdminChallengeDetail() {
     },
     onError: (e) => {
       setEndEarlyError(
-        e instanceof ApiError ? e.message : "Could not end challenge",
+        apiErrorText(e, "Could not end challenge"),
       );
     },
   });
@@ -466,7 +466,7 @@ export default function AdminChallengeDetail() {
     },
     onError: (e) => {
       setRemoveError(
-        e instanceof ApiError ? e.message : "Could not remove participant",
+        apiErrorText(e, "Could not remove participant"),
       );
     },
   });
@@ -486,7 +486,7 @@ export default function AdminChallengeDetail() {
       await invalidateChallengeQueries();
     },
     onError: (e) => {
-      setBanError(e instanceof ApiError ? e.message : "Could not ban user");
+      setBanError(apiErrorText(e, "Could not ban user"));
     },
   });
 
@@ -506,7 +506,7 @@ export default function AdminChallengeDetail() {
     },
     onError: (e) => {
       setBanError(
-        e instanceof ApiError ? e.message : "Could not update ban reason",
+        apiErrorText(e, "Could not update ban reason"),
       );
     },
   });
@@ -520,7 +520,7 @@ export default function AdminChallengeDetail() {
       await invalidateChallengeQueries();
     },
     onError: (e) => {
-      setBanError(e instanceof ApiError ? e.message : "Could not unban user");
+      setBanError(apiErrorText(e, "Could not unban user"));
     },
   });
 
@@ -568,7 +568,7 @@ export default function AdminChallengeDetail() {
       {isPending && <p className="text-muted-foreground">Loading…</p>}
       {isError && (
         <p className="text-destructive">
-          {error instanceof ApiError ? error.message : "Failed to load"}
+          {apiErrorText(error, "Failed to load")}
         </p>
       )}
 

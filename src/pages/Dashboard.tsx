@@ -22,6 +22,7 @@ import {
   getProfileTrendInsight,
   isNetworkError,
 } from "@/lib/api/profile";
+import { withRequestId } from "@/lib/api/errors";
 import { homeActivityFeedQueryKey as homeActivityFeedQueryKeyForUser } from "@/lib/prefetchHome";
 import { ownedProfileUserKey, profileKeys } from "@/lib/profileQueryKeys";
 import { isRaceKind } from "@/lib/sessionKind";
@@ -334,9 +335,12 @@ export default function Dashboard() {
 
   const error = useMemo(() => {
     if (!activityError || feedError) return null;
-    return activityError instanceof Error
-      ? activityError.message
-      : "Failed to load activity";
+    return withRequestId(
+      activityError instanceof Error && activityError.message.trim()
+        ? activityError.message
+        : "Failed to load activity",
+      activityError,
+    );
   }, [activityError, feedError]);
 
   useEffect(() => {
@@ -620,7 +624,7 @@ export default function Dashboard() {
               )}
               {error && !feedError && (
                 <p className="font-apex-body text-sm text-apex-error">
-                  Failed to load activity
+                  {error}
                 </p>
               )}
               {showEmptyFeedOnboarding && <OnboardingEmptyState />}

@@ -2,6 +2,7 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
     "src/main.tsx",
+    "middleware.ts",
     "src/App.tsx",
     "scripts/generate-sitemap.mjs",
     "scripts/run-android.mjs",

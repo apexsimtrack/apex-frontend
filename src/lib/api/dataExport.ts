@@ -5,6 +5,7 @@ import {
   extractErrorInfo,
   notifyAuthExpired,
 } from "./fetchClient";
+import { responseRequestId } from "./requestId";
 
 export type DataExportDepth = "summary" | "full";
 
@@ -58,14 +59,15 @@ export async function requestUserDataExport(options?: {
   }
 
   if (!res.ok) {
-    const { message, code, retryAfterMs } = await extractErrorInfo(res);
+    const { message, code, retryAfterMs, requestId } = await extractErrorInfo(res);
     await notifyAuthExpired(false, res.status);
-    throw new ApiError(res.status, message, code, retryAfterMs);
+    throw new ApiError(res.status, message, code, retryAfterMs, requestId);
   }
 
+  const requestId = responseRequestId(res.headers.get("x-request-id"), undefined);
   const job = await parseJobResponse(res);
   if (!job) {
-    throw new ApiError(500, "Invalid export response.");
+    throw new ApiError(500, "Invalid export response.", undefined, undefined, requestId);
   }
   return job;
 }
@@ -87,9 +89,9 @@ export async function fetchLatestUserDataExport(): Promise<DataExportJob | null>
   }
 
   if (!res.ok) {
-    const { message, code, retryAfterMs } = await extractErrorInfo(res);
+    const { message, code, retryAfterMs, requestId } = await extractErrorInfo(res);
     await notifyAuthExpired(false, res.status);
-    throw new ApiError(res.status, message, code, retryAfterMs);
+    throw new ApiError(res.status, message, code, retryAfterMs, requestId);
   }
 
   return parseJobResponse(res);
@@ -114,14 +116,15 @@ export async function fetchUserDataExportJob(
   }
 
   if (!res.ok) {
-    const { message, code, retryAfterMs } = await extractErrorInfo(res);
+    const { message, code, retryAfterMs, requestId } = await extractErrorInfo(res);
     await notifyAuthExpired(false, res.status);
-    throw new ApiError(res.status, message, code, retryAfterMs);
+    throw new ApiError(res.status, message, code, retryAfterMs, requestId);
   }
 
+  const requestId = responseRequestId(res.headers.get("x-request-id"), undefined);
   const job = await parseJobResponse(res);
   if (!job) {
-    throw new ApiError(404, "Export job not found.");
+    throw new ApiError(404, "Export job not found.", undefined, undefined, requestId);
   }
   return job;
 }

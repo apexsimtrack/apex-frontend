@@ -5,7 +5,7 @@ export const SITE_ORIGIN = "https://apexsimtracker.com";
 export const COMPANY_NAME = "Apex";
 
 /** Path under `public/` used when a route has no specific share image. */
-export const DEFAULT_OG_IMAGE_PATH = "/logo.png";
+export const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 /** Absolute URL for default Open Graph / Twitter images. */
 export function defaultOgImageAbsolute(): string {

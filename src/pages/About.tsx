@@ -15,12 +15,8 @@ import PageMeta from "@/components/PageMeta";
 import UserAvatar from "@/components/UserAvatar";
 import { appPrimaryButtonClassName } from "@/components/app-ui/appButtonClasses";
 import { getFounderPublicProfile } from "@/lib/api";
-import { COMPANY_NAME } from "@/lib/siteMeta";
+import { STATIC_SEO } from "@/config/seoMeta";
 import { cn } from "@/lib/utils";
-
-const ABOUT_PATH = "/about";
-const title = `About Us | ${COMPANY_NAME}`;
-const description = `Founded by professional racer Hugo Cook: ${COMPANY_NAME} unifies sim performance, telemetry, and insights in one place — built by a racer, for racers.`;
 
 const SIMS = ["iRacing", "F1 25", "Le Mans Ultimate"] as const;
 
@@ -86,7 +82,11 @@ export default function About() {
 
   return (
     <>
-      <PageMeta title={title} description={description} path={ABOUT_PATH} />
+      <PageMeta
+        title={STATIC_SEO.about.title}
+        description={STATIC_SEO.about.description}
+        path={STATIC_SEO.about.path}
+      />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col space-y-8 px-6 py-8">
         <header>
           <h1 className="font-apex-headline text-3xl font-bold tracking-tight text-apex-on-surface">
@@ -96,7 +96,7 @@ export default function About() {
             </span>
           </h1>
           <p className="mt-3 max-w-2xl font-apex-body text-sm leading-relaxed text-apex-on-surface-variant">
-            {description}
+            {STATIC_SEO.about.description}
           </p>
         </header>
 

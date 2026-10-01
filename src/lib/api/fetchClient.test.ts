@@ -4,10 +4,14 @@ import { APEX_DEVICE_ID_KEY } from "@/auth/deviceId";
 import { ApiError } from "./errors";
 import { buildApiAuthHeaders, fetchApi } from "./fetchClient";
 
-function jsonResponse(status: number, body: unknown): Response {
+function jsonResponse(
+  status: number,
+  body: unknown,
+  headers?: Record<string, string>,
+): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
   });
 }
 
@@ -39,6 +43,7 @@ describe("buildApiAuthHeaders", () => {
       Authorization: "Bearer jwt-access",
       "X-Apex-Session": "opaque-session-id",
       "X-Apex-Device-Id": expect.any(String),
+      "X-Request-Id": expect.stringMatching(/^[0-9a-f]{16}$/),
     });
   });
 
@@ -203,5 +208,66 @@ describe("fetchApi token refresh", () => {
     });
     expect(storage.get("apex_token")).toBe("old-jwt");
     expect(storage.get(APEX_REFRESH_TOKEN_KEY)).toBe("refresh-1");
+  });
+});
+
+describe("fetchApi request id", () => {
+  beforeEach(() => {
+    vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      setItem: () => undefined,
+      removeItem: () => undefined,
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("sends a 16-hex X-Request-Id and prefers requestId from the error body", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse(
+        400,
+        { message: "nope", requestId: "aabbccddeeff0011" },
+        { "x-request-id": "0011223344556677" },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchApi("GET", "/api/sessions")).rejects.toMatchObject({
+      status: 400,
+      message: "nope",
+      requestId: "aabbccddeeff0011",
+    });
+    const headers = (fetchMock.mock.calls[0][1] as RequestInit).headers as Record<
+      string,
+      string
+    >;
+    expect(headers["X-Request-Id"]).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it("uses the response header when the body has no valid request id", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse(500, { message: "An unexpected error occurred", requestId: "nope" }, {
+          "x-request-id": "ff00ff00ff00ff00",
+        }),
+      ),
+    );
+
+    await expect(fetchApi("POST", "/api/auth/login", { email: "a@b.c" }, true)).rejects.toMatchObject({
+      requestId: "ff00ff00ff00ff00",
+    });
+  });
+
+  it("does not attach an id when the connection fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+
+    const error = await fetchApi("GET", "/api/sessions").catch((err: unknown) => err);
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).status).toBe(0);
+    expect((error as ApiError).requestId).toBeUndefined();
   });
 });

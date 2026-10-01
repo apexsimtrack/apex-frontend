@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCatalogs, type CatalogTrack, type CatalogCar } from "@/lib/api";
+import { withRequestId } from "@/lib/api/errors";
 import { toCanonicalSimApiKey } from "@/lib/sim";
 
 export type UseCatalogsResult = {
@@ -44,7 +45,9 @@ export function useCatalogs(sim: string | null): UseCatalogsResult {
     tracks: data?.tracks ?? [],
     cars: data?.cars ?? [],
     loading: isPending,
-    error: error ? "Failed to load track/car list." : null,
+    error: error
+      ? withRequestId("Failed to load track/car list.", error)
+      : null,
     retry,
   };
 }

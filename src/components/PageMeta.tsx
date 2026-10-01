@@ -27,6 +27,14 @@ type PageMetaProps = {
   noindexNofollow?: boolean;
   /** Override robots meta entirely (e.g. "noindex, follow"). */
   robots?: string;
+  /** Page-specific JSON-LD. Upserts `script[data-apex-jsonld="route"]`. */
+  jsonLd?: Record<string, unknown> | null;
+};
+
+type ScriptSnapshot = {
+  el: HTMLScriptElement;
+  previousText: string | null;
+  created: boolean;
 };
 
 type MetaSnapshot = {
@@ -84,6 +92,30 @@ function restoreMeta({ el, previousContent, created }: MetaSnapshot) {
   else el.setAttribute("content", previousContent);
 }
 
+function upsertJsonLd(data: Record<string, unknown>): ScriptSnapshot {
+  let el = document.querySelector(
+    'script[data-apex-jsonld="route"]',
+  ) as HTMLScriptElement | null;
+  const created = !el;
+  if (!el) {
+    el = document.createElement("script");
+    el.type = "application/ld+json";
+    el.setAttribute("data-apex-jsonld", "route");
+    document.head.appendChild(el);
+  }
+  const previousText = el.textContent;
+  el.textContent = JSON.stringify(data).replace(/</g, "\\u003c");
+  return { el, previousText, created };
+}
+
+function restoreScript({ el, previousText, created }: ScriptSnapshot) {
+  if (created) {
+    el.remove();
+    return;
+  }
+  el.textContent = previousText;
+}
+
 function restoreLink({ el, previousHref, created }: LinkSnapshot) {
   if (created) {
     el.remove();
@@ -110,6 +142,7 @@ export default function PageMeta({
   noindex = false,
   noindexNofollow = true,
   robots: robotsOverride,
+  jsonLd = null,
 }: PageMetaProps) {
   useEffect(() => {
     const prevTitle = document.title;
@@ -141,8 +174,11 @@ export default function PageMeta({
       snapshots.push(upsertLink("canonical", canonical));
     }
 
+    const jsonLdSnapshot = jsonLd ? upsertJsonLd(jsonLd) : null;
+
     return () => {
       document.title = prevTitle;
+      if (jsonLdSnapshot) restoreScript(jsonLdSnapshot);
       for (let i = snapshots.length - 1; i >= 0; i--) {
         const s = snapshots[i];
         if ("previousContent" in s) restoreMeta(s);
@@ -160,6 +196,7 @@ export default function PageMeta({
     noindex,
     noindexNofollow,
     robotsOverride,
+    jsonLd,
   ]);
 
   return null;

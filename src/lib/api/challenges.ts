@@ -6,6 +6,7 @@ import {
 } from "./fetchClient";
 import { API_BASE } from "./config";
 import { ApiError } from "./errors";
+import { responseRequestId } from "./requestId";
 
 /** Matches GET /api/challenges summary rows */
 export type ChallengeApiStatus = "UPCOMING" | "ACTIVE" | "ENDED";
@@ -384,11 +385,13 @@ export async function uploadAdminChallengeCover(
 
   if (!res.ok) {
     let message = "Cover upload failed";
+    let body: unknown;
     try {
       const text = await res.text();
       if (text) {
         try {
           const json = JSON.parse(text) as { message?: string; error?: string };
+          body = json;
           message = json.message ?? json.error ?? message;
         } catch {
           message = text;
@@ -398,12 +401,24 @@ export async function uploadAdminChallengeCover(
       // keep default message
     }
     await notifyAuthExpired(false, res.status);
-    throw new ApiError(res.status, message);
+    throw new ApiError(
+      res.status,
+      message,
+      undefined,
+      undefined,
+      responseRequestId(res.headers.get("x-request-id"), body),
+    );
   }
 
   const data = (await res.json()) as { coverImageUrl?: string };
   if (!data?.coverImageUrl) {
-    throw new ApiError(500, "No cover URL in response");
+    throw new ApiError(
+      500,
+      "No cover URL in response",
+      undefined,
+      undefined,
+      responseRequestId(res.headers.get("x-request-id"), data),
+    );
   }
   return { coverImageUrl: data.coverImageUrl };
 }

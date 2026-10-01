@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form";
 import type { WithRootError } from "@/lib/formWithRootError";
 import type { LoginFormValues } from "@/lib/validation/authPages";
+import { withRequestId } from "@/lib/api/errors";
 import {
   appInputClassName,
   appPrimaryButtonClassName,
@@ -37,6 +38,7 @@ type LoginFormCardProps = {
   authRedirectMessage?: string;
   emailNotVerified: boolean;
   suspendedReason: string | null | undefined;
+  suspendedLoginError?: unknown;
 };
 
 export default function LoginFormCard({
@@ -47,6 +49,7 @@ export default function LoginFormCard({
   authRedirectMessage,
   emailNotVerified,
   suspendedReason,
+  suspendedLoginError,
 }: LoginFormCardProps) {
   const navigate = useNavigate();
 
@@ -151,7 +154,10 @@ export default function LoginFormCard({
               role="alert"
             >
               <p className="font-apex-headline font-medium text-apex-error">
-                Your account has been suspended from this platform.
+                {withRequestId(
+                  "Your account has been suspended from this platform.",
+                  suspendedLoginError,
+                )}
               </p>
               {suspendedReason ? (
                 <p className="mt-2 font-apex-body text-sm text-apex-on-surface-variant">

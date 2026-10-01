@@ -7,7 +7,7 @@ import {
   fetchAdminPasswordResetPending,
   postAdminEmailVerificationResend,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
@@ -111,9 +111,7 @@ export function AdminEmailOpsTab() {
     },
     onError: (e: unknown) => {
       toast.error(
-        e instanceof ApiError
-          ? e.message
-          : "Could not resend verification email.",
+        apiErrorText(e, "Could not resend verification email."),
       );
     },
   });
@@ -204,9 +202,7 @@ export function AdminEmailOpsTab() {
 
         {verQuery.isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {verQuery.error instanceof ApiError
-              ? verQuery.error.message
-              : "Could not load verification queue."}
+            {apiErrorText(verQuery.error, "Could not load verification queue.")}
           </div>
         )}
 
@@ -333,9 +329,7 @@ export function AdminEmailOpsTab() {
 
         {prQuery.isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {prQuery.error instanceof ApiError
-              ? prQuery.error.message
-              : "Could not load password reset queue."}
+            {apiErrorText(prQuery.error, "Could not load password reset queue.")}
           </div>
         )}
 

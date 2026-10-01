@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AudiencePicker } from "./AudiencePicker";
 import {
+  apiErrorText,
   ApiError,
   createBroadcast,
   updateBroadcast,
@@ -145,7 +146,7 @@ export function BroadcastComposeModal({ initial, onClose, onSaved }: Props) {
       }
       await onSaved();
     } catch (e) {
-      setErr(e instanceof ApiError ? e.message : "Failed to save broadcast");
+      setErr(apiErrorText(e, "Failed to save broadcast"));
     } finally {
       setPending(false);
     }

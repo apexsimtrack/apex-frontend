@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { createBillingPortalSession, getBillingPlans } from "@/lib/api";
+import { withRequestId } from "@/lib/api/errors";
 import { formatCurrentSubscriptionLabel } from "@/features/billing/subscriptionDisplay";
 import {
   complimentaryAccessExpiresAt,
@@ -59,7 +60,9 @@ export function SubscriptionCard() {
     },
   });
   const portalErrorMessage =
-    portalMutation.error instanceof Error ? portalMutation.error.message : null;
+    portalMutation.error instanceof Error
+      ? withRequestId(portalMutation.error.message, portalMutation.error)
+      : null;
 
   const { data: plans } = useQuery({
     queryKey: ["billing", "plans"],

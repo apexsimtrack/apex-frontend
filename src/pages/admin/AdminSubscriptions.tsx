@@ -8,7 +8,7 @@ import {
   type AdminSubscriptionListParams,
   type AdminSubscriptionListRow,
 } from "@/lib/api/adminSubscriptions";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { Button } from "@/components/ui/button";
@@ -140,7 +140,7 @@ export default function AdminSubscriptions() {
       await qc.invalidateQueries({ queryKey: ["admin", "metrics"] });
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : "Sync failed");
+      toast.error(apiErrorText(e, "Sync failed"));
     },
     onSettled: () => setSyncingUserId(null),
   });
@@ -162,7 +162,7 @@ export default function AdminSubscriptions() {
       await qc.invalidateQueries({ queryKey: ["admin", "metrics"] });
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : "Page sync failed");
+      toast.error(apiErrorText(e, "Page sync failed"));
     },
     onSettled: () => setSyncingPage(false),
   });
@@ -307,9 +307,7 @@ export default function AdminSubscriptions() {
 
               {isError && (
                 <p className="p-4 text-sm text-destructive">
-                  {error instanceof ApiError
-                    ? error.message
-                    : "Failed to load subscriptions"}
+                  {apiErrorText(error, "Failed to load subscriptions")}
                 </p>
               )}
 

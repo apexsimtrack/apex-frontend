@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { AUTH_PATHS } from "@/config/navigation";
 import { useAuth, AUTH_ME_QUERY_KEY } from "@/contexts/AuthContext";
 import { clearToken } from "@/auth/token";
-import {
+import { withRequestId,
   authLogout,
   changePassword,
   deleteAccount,
@@ -226,11 +226,7 @@ export default function Settings() {
       } catch (e) {
         setSettings((s) => ({ ...s, [key]: prev }));
         const msg =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Could not save notification settings.";
+          withRequestId(e instanceof Error ? e.message : "Could not save notification settings.", e);
         toast.error(msg);
       } finally {
         setNotificationSaving(false);
@@ -258,11 +254,7 @@ export default function Settings() {
           inAppNotificationPrefs: { ...s.inAppNotificationPrefs, [key]: prev },
         }));
         const msg =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Could not save notification settings.";
+          withRequestId(e instanceof Error ? e.message : "Could not save notification settings.", e);
         toast.error(msg);
       } finally {
         setNotificationSaving(false);
@@ -282,11 +274,7 @@ export default function Settings() {
       applyNotificationSettingsResponse(updated);
     } catch (e) {
       const msg =
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
-            ? e.message
-            : "Could not reset notification settings.";
+        withRequestId(e instanceof Error ? e.message : "Could not reset notification settings.", e);
       toast.error(msg);
     } finally {
       setNotificationSaving(false);
@@ -321,11 +309,7 @@ export default function Settings() {
       } catch (e) {
         setSettings((s) => ({ ...s, [key]: prev }));
         const msg =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Could not save privacy settings.";
+          withRequestId(e instanceof Error ? e.message : "Could not save privacy settings.", e);
         toast.error(msg);
       } finally {
         setPrivacySaving(false);
@@ -364,11 +348,7 @@ export default function Settings() {
       } catch (e) {
         setSettings((s) => ({ ...s, sessionVisibility: prev }));
         const msg =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Could not save privacy settings.";
+          withRequestId(e instanceof Error ? e.message : "Could not save privacy settings.", e);
         toast.error(msg);
       } finally {
         setPrivacySaving(false);
@@ -474,12 +454,8 @@ export default function Settings() {
     } catch (e) {
       const msg =
         e instanceof ApiError && e.status === 429 && e.retryAfterMs != null
-          ? `You can export again in ${formatRetryAfterMs(e.retryAfterMs)}.`
-          : e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Could not request export.";
+          ? withRequestId(`You can export again in ${formatRetryAfterMs(e.retryAfterMs)}.`, e)
+          : withRequestId(e instanceof Error ? e.message : "Could not request export.", e);
       if (e instanceof ApiError && e.status === 429 && e.retryAfterMs != null) {
         setCooldownMs(e.retryAfterMs);
       }
@@ -525,11 +501,7 @@ export default function Settings() {
         navigate(AUTH_PATHS.login, { replace: true });
       } catch (e) {
         const msg =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Could not delete account.";
+          withRequestId(e instanceof Error ? e.message : "Could not delete account.", e);
         deleteAccountForm.setError("root", { type: "server", message: msg });
       } finally {
         setDeleteSubmitting(false);
@@ -567,11 +539,7 @@ export default function Settings() {
         setTimeout(() => setChangePwSuccess(false), 2500);
       } catch (e) {
         const msg =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Could not update password.";
+          withRequestId(e instanceof Error ? e.message : "Could not update password.", e);
         changePasswordForm.setError("root", { type: "server", message: msg });
       } finally {
         setChangePwSubmitting(false);

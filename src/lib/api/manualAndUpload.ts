@@ -1,5 +1,6 @@
 import { API_BASE } from "./config";
 import { ApiError } from "./errors";
+import { responseRequestId } from "./requestId";
 import {
   buildApiAuthHeaders,
   fetchApi,
@@ -228,19 +229,25 @@ export async function getCatalogs(sim: string): Promise<CatalogsResponse> {
   return apiGet<CatalogsResponse>(`/api/catalogs/${encodeURIComponent(sim)}`);
 }
 
-function parseXhrErrorPayload(text: string): {
+function parseXhrErrorPayload(
+  text: string,
+  header: string | null,
+): {
   message: string;
   code?: string;
   retryAfterMs?: number;
+  requestId?: string;
 } {
   let message = "Request failed";
   let code: string | undefined;
   let retryAfterMs: number | undefined;
+  let body: unknown;
   if (!text.trim()) {
-    return { message };
+    return { message, requestId: responseRequestId(header, undefined) };
   }
   try {
     const json = JSON.parse(text) as Record<string, unknown>;
+    body = json;
     message =
       (typeof json.message === "string" && json.message) ||
       (typeof json.error === "string" && json.error) ||
@@ -252,7 +259,7 @@ function parseXhrErrorPayload(text: string): {
   } catch {
     message = text;
   }
-  return { message, code, retryAfterMs };
+  return { message, code, retryAfterMs, requestId: responseRequestId(header, body) };
 }
 
 export async function uploadSessionFile(
@@ -384,9 +391,12 @@ export async function uploadSessionFile(
         }
 
         await notifyAuthExpired(false, status);
-        const { message, code, retryAfterMs } = parseXhrErrorPayload(text);
+        const { message, code, retryAfterMs, requestId } = parseXhrErrorPayload(
+          text,
+          xhr.getResponseHeader("X-Request-Id"),
+        );
         if (code === "PRO_REQUIRED") emitProRequiredEvent();
-        rejectOnce(new ApiError(status, message, code, retryAfterMs));
+        rejectOnce(new ApiError(status, message, code, retryAfterMs, requestId));
       })();
     };
 

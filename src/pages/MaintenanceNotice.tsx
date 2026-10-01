@@ -11,7 +11,7 @@ import {
 import PageMeta from "@/components/PageMeta";
 import { Button } from "@/components/ui/button";
 import { appOutlineButtonClassName } from "@/components/app-ui/appButtonClasses";
-import { ApiError, fetchPublicMaintenanceWindow } from "@/lib/api";
+import { apiErrorText, ApiError, fetchPublicMaintenanceWindow } from "@/lib/api";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { cn } from "@/lib/utils";
 import {
@@ -109,17 +109,15 @@ export default function MaintenanceNotice() {
             >
               <AlertTriangle className="size-5" />
             </div>
-            <h1 className="mt-4 font-apex-headline text-3xl font-bold tracking-tight text-apex-on-surface">
+            <h2 className="mt-4 font-apex-headline text-3xl font-bold tracking-tight text-apex-on-surface">
               {notFound
                 ? "Maintenance notice not found"
                 : "Could not load maintenance details"}
-            </h1>
+            </h2>
             <p className="mt-2 font-apex-body text-sm leading-relaxed text-apex-on-surface-variant">
               {notFound
                 ? "This maintenance page is not currently public or no longer available."
-                : maintenanceQuery.error instanceof ApiError
-                  ? maintenanceQuery.error.message
-                  : "Please try again in a moment."}
+                : apiErrorText(maintenanceQuery.error, "Please try again in a moment.")}
             </p>
           </div>
         ) : maintenanceQuery.data ? (

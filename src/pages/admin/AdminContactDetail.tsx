@@ -8,7 +8,7 @@ import {
   type AdminContactUserSummary,
   type ContactSubmissionStatus,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { Button } from "@/components/ui/button";
@@ -105,7 +105,7 @@ export default function AdminContactDetail() {
       setNotesDraft(updated.internalNotes ?? "");
     },
     onError: (e: unknown) => {
-      setSaveError(e instanceof ApiError ? e.message : "Save failed");
+      setSaveError(apiErrorText(e, "Save failed"));
     },
   });
 
@@ -141,9 +141,7 @@ export default function AdminContactDetail() {
 
         {isError && (
           <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load submission."}
+            {apiErrorText(error, "Could not load submission.")}
           </div>
         )}
 

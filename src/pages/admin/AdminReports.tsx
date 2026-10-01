@@ -13,7 +13,7 @@ import {
   type AdminReportRow,
   type AdminReportStatus,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { Button } from "@/components/ui/button";
@@ -185,7 +185,7 @@ export default function AdminReports() {
     },
     onError: (err) => {
       toast.error(
-        err instanceof ApiError ? err.message : "Action failed. Report left pending.",
+        apiErrorText(err, "Action failed. Report left pending."),
       );
     },
   });
@@ -266,9 +266,7 @@ export default function AdminReports() {
               ) : isError ? (
                 <tr>
                   <td colSpan={8} className={`${ADMIN_TD} text-red-300`}>
-                    {error instanceof ApiError
-                      ? error.message
-                      : "Failed to load reports."}
+                    {apiErrorText(error, "Failed to load reports.")}
                   </td>
                 </tr>
               ) : rows.length === 0 ? (

@@ -15,7 +15,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
+  apiErrorText,
   ApiError,
+  withRequestId,
   archiveBroadcast,
   deleteBroadcast,
   deleteCampaign,
@@ -219,7 +221,7 @@ function StatCard({
 }
 
 function OverviewTab({ onJumpToFailed }: { onJumpToFailed: () => void }) {
-  const { data, isPending, isError } = useQuery<AdminNotificationsOverview>({
+  const { data, isPending, isError, error } = useQuery<AdminNotificationsOverview>({
     queryKey: ["admin", "notifications", "overview"],
     queryFn: fetchAdminNotificationsOverview,
     refetchInterval: 30_000,
@@ -238,7 +240,7 @@ function OverviewTab({ onJumpToFailed }: { onJumpToFailed: () => void }) {
   if (isError || !data) {
     return (
       <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-        Could not load overview.
+        {withRequestId("Could not load overview.", error)}
       </div>
     );
   }
@@ -358,9 +360,7 @@ function BroadcastsTab() {
     <>
       {isError && (
         <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error instanceof ApiError
-            ? error.message
-            : "Could not load broadcasts."}
+          {apiErrorText(error, "Could not load broadcasts.")}
         </div>
       )}
       <div className={ADMIN_TABLE_CARD}>
@@ -605,9 +605,7 @@ function BroadcastsTab() {
       >
         {deleteMut.isError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {deleteMut.error instanceof ApiError
-              ? deleteMut.error.message
-              : "Could not delete broadcast."}
+            {apiErrorText(deleteMut.error, "Could not delete broadcast.")}
           </div>
         ) : null}
       </BaseAlertDialog>
@@ -645,7 +643,7 @@ function CampaignsTab() {
     [page, channelFilter, debounced],
   );
 
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ["admin", "notifications", "campaigns", params],
     queryFn: () => fetchAdminCampaigns(params),
   });
@@ -690,7 +688,7 @@ function CampaignsTab() {
     <>
       {isError && (
         <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          Could not load campaigns.
+          {withRequestId("Could not load campaigns.", error)}
         </div>
       )}
       <div className={ADMIN_TABLE_CARD}>
@@ -900,9 +898,7 @@ function CampaignsTab() {
       >
         {deleteMut.isError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {deleteMut.error instanceof ApiError
-              ? deleteMut.error.message
-              : "Could not delete campaign."}
+            {apiErrorText(deleteMut.error, "Could not delete campaign.")}
           </div>
         ) : null}
       </BaseAlertDialog>

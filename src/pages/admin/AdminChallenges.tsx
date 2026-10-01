@@ -8,7 +8,7 @@ import {
   uploadAdminChallengeCover,
   type AdminChallengeRow,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog, BaseModal } from "@/components/ui/base-modal";
@@ -124,7 +124,7 @@ export default function AdminChallenges() {
       await qc.invalidateQueries({ queryKey: ["challenges"] });
     },
     onError: (e) => {
-      setFormError(e instanceof ApiError ? e.message : "Delete failed");
+      setFormError(apiErrorText(e, "Delete failed"));
     },
   });
 
@@ -171,9 +171,7 @@ export default function AdminChallenges() {
 
         {isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load challenges."}
+            {apiErrorText(error, "Could not load challenges.")}
           </div>
         )}
 
@@ -530,7 +528,7 @@ function CreateChallengeModal({
           await uploadAdminChallengeCover(created.id, coverFile);
         } catch (e) {
           const message =
-            e instanceof ApiError ? e.message : "Cover upload failed";
+            apiErrorText(e, "Cover upload failed");
           toast.warning(
             `Challenge created, but cover upload failed: ${message}. Upload a cover from the challenge detail page.`,
           );
@@ -538,7 +536,7 @@ function CreateChallengeModal({
       }
       await onCreated();
     } catch (e) {
-      setErr(e instanceof ApiError ? e.message : "Failed to create");
+      setErr(apiErrorText(e, "Failed to create"));
     } finally {
       setPending(false);
     }

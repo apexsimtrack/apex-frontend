@@ -33,7 +33,7 @@ import {
   type ReportReason,
   type ReportTargetType,
 } from "@/lib/api/ugcModeration";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import {
   applyOptimisticBlock,
   applyOptimisticHide,
@@ -117,7 +117,7 @@ export default function UgcOverflowMenu({
     },
     onError: (err) => {
       toast.error(
-        err instanceof ApiError ? err.message : "Could not submit this report.",
+        apiErrorText(err, "Could not submit this report."),
       );
     },
   });
@@ -152,7 +152,7 @@ export default function UgcOverflowMenu({
     } catch (err) {
       rollbackUgcModerationCache(queryClient, snapshot);
       toast.error(
-        err instanceof ApiError ? err.message : "Could not hide this content.",
+        apiErrorText(err, "Could not hide this content."),
       );
     } finally {
       setPending(false);
@@ -172,7 +172,7 @@ export default function UgcOverflowMenu({
     } catch (err) {
       rollbackUgcModerationCache(queryClient, snapshot);
       toast.error(
-        err instanceof ApiError ? err.message : "Could not block this user.",
+        apiErrorText(err, "Could not block this user."),
       );
     } finally {
       setPending(false);

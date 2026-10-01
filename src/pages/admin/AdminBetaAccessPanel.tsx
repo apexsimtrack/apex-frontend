@@ -6,16 +6,18 @@ import { toast } from "sonner";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   createAdminBetaAccess,
+  fetchAdminBetaAccessEmailLookup,
   fetchAdminBetaAccessList,
   revokeAdminBetaAccess,
   updateAdminBetaAccess,
+  type AdminBetaAccessEmailLookup,
   type AdminBetaAccessGrant,
   type AdminBetaAccessListParams,
   type AdminBetaAccessStatus,
   type AdminBetaAccessUpdatePayload,
   type AdminBetaAccessWritePayload,
 } from "@/lib/api/adminSubscriptions";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 import { BaseAlertDialog, BaseModal } from "@/components/ui/base-modal";
 import { Button } from "@/components/ui/button";
@@ -38,7 +40,7 @@ const SELECT =
 type GrantMode = "duration" | "custom";
 
 function errorMessage(error: unknown, fallback: string) {
-  return error instanceof ApiError ? error.message : fallback;
+  return apiErrorText(error, fallback);
 }
 
 function formatDateTime(value: string | null, emptyLabel: string): string {
@@ -59,6 +61,45 @@ function defaultExpiryInput(durationDays: number): string {
   const date = new Date();
   date.setDate(date.getDate() + durationDays);
   return toLocalDateTimeInput(date.toISOString());
+}
+
+const BLOCKING_GRANT_LABEL: Partial<Record<AdminBetaAccessStatus, string>> = {
+  PENDING: "grant waiting for signup",
+  SCHEDULED: "scheduled grant",
+  ACTIVE: "active grant",
+};
+
+export function betaAccessLookupNote(lookup: AdminBetaAccessEmailLookup): {
+  tone: "found" | "reserved" | "warning";
+  message: string;
+} {
+  if (lookup.blockingGrant) {
+    const label =
+      BLOCKING_GRANT_LABEL[lookup.blockingGrant.status] ?? "open grant";
+    return {
+      tone: "warning",
+      message: `This email already has a ${label}. Edit or revoke it instead — granting again is rejected.`,
+    };
+  }
+  if (lookup.accountDeleted) {
+    return {
+      tone: "warning",
+      message:
+        "The account for this email is deleted. Access stays reserved until someone signs up with it again.",
+    };
+  }
+  if (lookup.linksImmediately) {
+    const name = lookup.user?.name?.trim();
+    return {
+      tone: "found",
+      message: `Account found${name ? `: ${name}` : ""}. Beta access starts as soon as you grant it.`,
+    };
+  }
+  return {
+    tone: "reserved",
+    message:
+      "No account with this email yet. Access is reserved and starts when they sign up.",
+  };
 }
 
 function BetaStatusBadge({ status }: { status: AdminBetaAccessStatus }) {
@@ -112,6 +153,22 @@ function BetaAccessGrantModal({
       : defaultExpiryInput(grant?.durationDays ?? 30),
   );
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const lookupMutation = useMutation({
+    mutationFn: (value: string) => fetchAdminBetaAccessEmailLookup(value),
+  });
+  const lookup = lookupMutation.data ?? null;
+  const lookupNote = lookup ? betaAccessLookupNote(lookup) : null;
+
+  function checkEmail() {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setValidationError("Enter an email to check.");
+      return;
+    }
+    setValidationError(null);
+    lookupMutation.mutate(normalizedEmail);
+  }
 
   function submit() {
     setValidationError(null);
@@ -193,16 +250,54 @@ function BetaAccessGrantModal({
       <div className="space-y-4">
         <div>
           <Label htmlFor="beta-access-email">Email</Label>
-          <Input
-            id="beta-access-email"
-            type="email"
-            className="mt-1"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            disabled={Boolean(grant) || pending}
-            autoComplete="email"
-            required
-          />
+          <div className="mt-1 flex gap-2">
+            <Input
+              id="beta-access-email"
+              type="email"
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                lookupMutation.reset();
+              }}
+              disabled={Boolean(grant) || pending}
+              autoComplete="email"
+              required
+            />
+            {!grant && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={checkEmail}
+                disabled={pending || lookupMutation.isPending}
+              >
+                {lookupMutation.isPending && (
+                  <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+                )}
+                Check
+              </Button>
+            )}
+          </div>
+          <div aria-live="polite">
+            {lookupMutation.isError && (
+              <p className="mt-2 text-xs text-destructive">
+                {errorMessage(lookupMutation.error, "Could not check this email")}
+              </p>
+            )}
+            {lookupNote && (
+              <p
+                className={cn(
+                  "mt-2 text-xs",
+                  lookupNote.tone === "found"
+                    ? "text-emerald-200"
+                    : lookupNote.tone === "warning"
+                      ? "text-amber-200"
+                      : "text-muted-foreground",
+                )}
+              >
+                {lookupNote.message}
+              </p>
+            )}
+          </div>
         </div>
 
         <fieldset>

@@ -1,17 +1,23 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   acceptAttributeForAgentOs,
   fetchAdminAgentDownloadLogs,
+  fetchAdminAgentMinUploadVersion,
   fetchAdminAgentReleases,
   fetchAdminAgentReleaseSummary,
   publishAdminAgentRelease,
+  setAdminAgentMinUploadVersion,
   validateAgentInstallerFile,
   verifyAdminAgentReleases,
   type AdminAgentReleaseSummaryItem,
   type AgentOs,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { withRequestId, apiErrorText, ApiError } from "@/lib/api/errors";
+import {
+  agentReleaseFloorWarnings,
+  isMajorMinorPatch,
+} from "@/pages/admin/agentReleaseFloorWarnings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Upload, RefreshCw } from "lucide-react";
@@ -64,6 +70,7 @@ export function AdminAgentReleasesPanel() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadPercent, setUploadPercent] = useState(0);
   const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
+  const [floorInput, setFloorInput] = useState("");
 
   const isUploading = uploadPhase !== "idle";
 
@@ -71,6 +78,16 @@ export function AdminAgentReleasesPanel() {
     queryKey: ["admin", "agent", "releases", "summary"],
     queryFn: fetchAdminAgentReleaseSummary,
   });
+
+  const floorQuery = useQuery({
+    queryKey: ["admin", "agent", "min-upload-version"],
+    queryFn: fetchAdminAgentMinUploadVersion,
+  });
+
+  useEffect(() => {
+    if (!floorQuery.isSuccess) return;
+    setFloorInput(floorQuery.data.version ?? "");
+  }, [floorQuery.isSuccess, floorQuery.data]);
 
   const historyQuery = useQuery({
     queryKey: ["admin", "agent", "releases", "history", { page: 1 }],
@@ -89,6 +106,18 @@ export function AdminAgentReleasesPanel() {
     }
     return map;
   }, [summaryQuery.data]);
+
+  const floorWarnings = useMemo(
+    () =>
+      agentReleaseFloorWarnings(
+        floorQuery.data?.version ?? null,
+        (["macos", "windows", "linux"] as const).map((os) => ({
+          os,
+          version: summaryByOs.get(os)?.activeRelease?.version ?? null,
+        })),
+      ),
+    [floorQuery.data?.version, summaryByOs],
+  );
 
   function latestVersionLabel(
     row: AdminAgentReleaseSummaryItem | undefined,
@@ -125,6 +154,34 @@ export function AdminAgentReleasesPanel() {
     }
   }
 
+  const floorMutation = useMutation({
+    mutationFn: async () => {
+      const trimmed = floorInput.trim();
+      if (trimmed && !isMajorMinorPatch(trimmed)) {
+        throw new Error("version must be major.minor.patch");
+      }
+      return setAdminAgentMinUploadVersion(trimmed ? trimmed : null);
+    },
+    onSuccess: async (saved) => {
+      setFloorInput(saved.version ?? "");
+      toast.success(
+        saved.version ? "Upload floor saved." : "Upload floor cleared.",
+      );
+      await qc.invalidateQueries({
+        queryKey: ["admin", "agent", "min-upload-version"],
+      });
+    },
+    onError: (e: unknown) => {
+      if (e instanceof ApiError) {
+        toast.error(apiErrorText(e, "Could not save the upload floor."));
+        return;
+      }
+      toast.error(
+        e instanceof Error ? e.message : "Could not save the upload floor.",
+      );
+    },
+  });
+
   const verifyMutation = useMutation({
     mutationFn: verifyAdminAgentReleases,
     onSuccess: async () => {
@@ -132,7 +189,7 @@ export function AdminAgentReleasesPanel() {
       await qc.invalidateQueries({ queryKey: ["admin", "agent"] });
     },
     onError: (e: unknown) => {
-      toast.error(e instanceof ApiError ? e.message : "Verification failed.");
+      toast.error(apiErrorText(e, "Verification failed."));
     },
   });
 
@@ -141,6 +198,9 @@ export function AdminAgentReleasesPanel() {
       const fileCheck = validateAgentInstallerFile(uploadOs, selectedFile);
       if (fileCheck.ok === false) throw new Error(fileCheck.message);
       if (!uploadVersion.trim()) throw new Error("Version is required.");
+      if (!isMajorMinorPatch(uploadVersion.trim())) {
+        throw new Error("version must be major.minor.patch");
+      }
 
       const form = new FormData();
       form.append("os", uploadOs);
@@ -177,11 +237,7 @@ export function AdminAgentReleasesPanel() {
       setUploadPercent(0);
       setUploadPhase("idle");
       toast.error(
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
-            ? e.message
-            : "Upload failed.",
+        withRequestId(e instanceof Error ? e.message : "Upload failed.", e),
       );
     },
   });
@@ -205,6 +261,47 @@ export function AdminAgentReleasesPanel() {
         </Button>
       </div>
 
+      <div className="rounded-xl border border-white/10 bg-card/30 p-4 sm:p-6">
+        <h2 className="text-sm font-semibold text-foreground">Upload floor</h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+          <li>Agents below this version cannot upload.</li>
+          <li>Publishing a release does not change this number.</li>
+          <li>
+            Agents that send no version still upload. That includes installs
+            from before this gate.
+          </li>
+          <li>A saved floor reaches upload within about a minute.</li>
+        </ul>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Input
+            className="max-w-xs"
+            placeholder="1.2.3"
+            value={floorInput}
+            disabled={floorMutation.isPending || floorQuery.isPending}
+            onChange={(e) => setFloorInput(e.target.value)}
+            aria-label="Minimum upload version"
+          />
+          <Button
+            type="button"
+            size="sm"
+            disabled={floorMutation.isPending || floorQuery.isPending}
+            onClick={() => floorMutation.mutate()}
+          >
+            {floorMutation.isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : null}
+            Save
+          </Button>
+        </div>
+        {floorWarnings.length > 0 ? (
+          <ul className="mt-3 space-y-1 text-sm text-amber-300">
+            {floorWarnings.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
         {(["macos", "windows", "linux"] as const).map((os) => {
           const row = summaryByOs.get(os);
@@ -219,6 +316,11 @@ export function AdminAgentReleasesPanel() {
               </p>
               <p className="mt-2 text-lg font-semibold text-foreground">
                 {latestVersionLabel(row)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                A signed-in agent on an older build sees an update card and can
+                still upload. The agent checks at sign-in and then every 6
+                hours.
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 R2: {row?.r2ObjectExists ? "present" : "missing"} ·{" "}

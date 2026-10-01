@@ -11,6 +11,7 @@ import {
   getUserChallengeBadgesPage,
   type UserChallengeBadge,
 } from "@/lib/api";
+import { withRequestId } from "@/lib/api/errors";
 import { profileKeys } from "@/lib/profileQueryKeys";
 import { cn } from "@/lib/utils";
 
@@ -156,9 +157,9 @@ export default function ProfileChallengeBadgesModal({
   const currentPage = data?.page ?? page;
   const errMsg =
     error instanceof Error
-      ? error.message
+      ? withRequestId(error.message, error)
       : error
-        ? "Failed to load challenge badges."
+        ? withRequestId("Failed to load challenge badges.", error)
         : null;
 
   const handleClose = () => onOpenChange(false);

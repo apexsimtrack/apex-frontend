@@ -65,6 +65,22 @@ describe("resolveAuthLoading", () => {
     expect(loading).toBe(false);
   });
 
+  it("is false for a background /me refetch when a user is cached", () => {
+    const loading = resolveAuthLoading(
+      true,
+      {
+        data: sampleUser,
+        isError: false,
+        error: null,
+        isPending: false,
+        isFetching: true,
+      },
+      true,
+    );
+
+    expect(loading).toBe(false);
+  });
+
   it("is true when token exists but /me has not resolved yet", () => {
     const loading = resolveAuthLoading(
       true,

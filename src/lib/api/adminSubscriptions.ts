@@ -146,6 +146,19 @@ export type AdminBetaAccessListParams = {
   status?: AdminBetaAccessStatus;
 };
 
+export type AdminBetaAccessEmailLookup = {
+  email: string;
+  accountExists: boolean;
+  accountDeleted: boolean;
+  linksImmediately: boolean;
+  user: { id: string; email: string; name: string | null } | null;
+  blockingGrant: {
+    id: string;
+    status: AdminBetaAccessStatus;
+    expiresAt: string | null;
+  } | null;
+};
+
 export type AdminBetaAccessWritePayload =
   | { email: string; durationDays: number }
   | { email: string; startsAt: string; expiresAt: string };
@@ -175,6 +188,17 @@ export async function fetchAdminBetaAccessList(
   return fetchApi(
     "GET",
     `/api/admin/subscriptions/beta-access${qs ? `?${qs}` : ""}`,
+    undefined,
+    false,
+  );
+}
+
+export async function fetchAdminBetaAccessEmailLookup(
+  email: string,
+): Promise<AdminBetaAccessEmailLookup> {
+  return fetchApi(
+    "GET",
+    `/api/admin/subscriptions/beta-access/lookup?email=${encodeURIComponent(email)}`,
     undefined,
     false,
   );

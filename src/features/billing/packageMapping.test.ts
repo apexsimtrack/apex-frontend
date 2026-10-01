@@ -96,6 +96,58 @@ describe("packageMapping", () => {
     ).toBeNull();
   });
 
+  it("maps Play subscription IDs with base-plan suffixes", () => {
+    const monthly = mockPackage(
+      "$rc_monthly",
+      `${PLAY_PRO_MONTHLY}:monthly`,
+      "native",
+    );
+    const annual = mockPackage(
+      "$rc_annual",
+      `${PLAY_PRO_ANNUAL}:annual`,
+      "native",
+    );
+    const appleAnnual = mockPackage(
+      "$rc_annual",
+      APPLE_PRO_ANNUAL,
+      "native",
+    );
+
+    const resolved = resolvePackagesByInterval(
+      [appleAnnual, monthly, annual],
+      "play",
+    );
+    expect(resolved.monthly).toBe(monthly);
+    expect(resolved.annual).toBe(annual);
+  });
+
+  it("keeps Apple product matching exact", () => {
+    const appleAnnual = mockPackage(
+      "$rc_annual",
+      APPLE_PRO_ANNUAL,
+      "native",
+    );
+    expect(
+      resolvePackagesByInterval([appleAnnual], "apple").annual,
+    ).toBe(appleAnnual);
+    expect(
+      resolvePackagesByInterval(
+        [
+          mockPackage(
+            "$rc_annual",
+            `${APPLE_PRO_ANNUAL}:annual`,
+            "native",
+          ),
+          mockPackage("$rc_annual", PLAY_PRO_ANNUAL, "native"),
+        ],
+        "apple",
+      ).annual,
+    ).toBeNull();
+    expect(
+      resolvePackagesByInterval([appleAnnual], "play").annual,
+    ).toBeNull();
+  });
+
   it("pickDefaultInterval prefers annual when available", () => {
     expect(
       pickDefaultInterval({

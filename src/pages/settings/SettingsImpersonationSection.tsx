@@ -3,6 +3,7 @@ import { EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { exitImpersonationSession } from "@/lib/api/impersonationAuth";
+import { withRequestId } from "@/lib/api/errors";
 import {
   impersonatedUserEmail,
   isImpersonating,
@@ -28,6 +29,13 @@ export default function SettingsImpersonationSection() {
         return;
       }
       window.location.assign("/admin/users");
+    } catch (err) {
+      toast.error(
+        withRequestId(
+          "Could not restore admin session. Sign out and sign in again.",
+          err,
+        ),
+      );
     } finally {
       setBusy(false);
     }

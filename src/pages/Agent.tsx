@@ -17,7 +17,12 @@ import { appPrimaryButtonClassName } from "@/components/app-ui/appButtonClasses"
 import { useAuth, useIsProUser } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { downloadAgentBinary } from "@/lib/api/agentDownload";
-import { ApiError, isProRequiredError } from "@/lib/api/errors";
+import {
+  apiErrorText,
+  ApiError,
+  isProRequiredError,
+  withRequestId,
+} from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { AUTH_PATHS } from "@/config/navigation";
@@ -133,40 +138,47 @@ export default function Agent() {
       }
       if (err instanceof ApiError && err.status === 401) {
         toast.error("Sign in required", {
-          description: "Log in with an Apex Pro account to download the agent.",
+          description: withRequestId(
+            "Log in with an Apex Pro account to download the agent.",
+            err,
+          ),
         });
         navigate(AUTH_PATHS.login);
         return;
       }
       if (err instanceof ApiError && err.code === "AGENT_OBJECT_NOT_FOUND") {
         toast.error("Installer not published", {
-          description:
+          description: withRequestId(
             err.message ||
-            "This platform’s installer has not been uploaded to storage yet. Try the other OS or check back later.",
+              "This platform’s installer has not been uploaded to storage yet. Try the other OS or check back later.",
+            err,
+          ),
         });
         return;
       }
       if (err instanceof ApiError && err.code === "AGENT_DOWNLOAD_DISABLED") {
         toast.error("Download temporarily unavailable", {
-          description:
+          description: withRequestId(
             err.message ||
-            "Agent downloads are disabled. Please try again later.",
+              "Agent downloads are disabled. Please try again later.",
+            err,
+          ),
         });
         return;
       }
       if (err instanceof ApiError && err.code === "AGENT_NOT_AVAILABLE") {
         toast.error("Download unavailable", {
-          description:
+          description: withRequestId(
             err.message ||
-            "No installer is configured on the server. Please try again later.",
+              "No installer is configured on the server. Please try again later.",
+            err,
+          ),
         });
         return;
       }
       toast.error("Download failed", {
         description:
-          err instanceof ApiError
-            ? err.message
-            : "Unable to start download. Please try again.",
+          apiErrorText(err, "Unable to start download. Please try again."),
       });
     } finally {
       setIsDownloading(false);

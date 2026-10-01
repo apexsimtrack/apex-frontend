@@ -9,14 +9,10 @@ import {
   Upload,
   Zap,
 } from "lucide-react";
-import { COMPANY_NAME } from "@/lib/siteMeta";
 
 export const PUBLIC_HOME_PATH = "/";
 
 export const SIMS = ["iRacing", "F1 25", "Le Mans Ultimate"] as const;
-
-export const PUBLIC_HOME_TITLE = `${COMPANY_NAME} — Sim racing performance hub`;
-export const PUBLIC_HOME_DESCRIPTION = `${COMPANY_NAME}: session logging, telemetry, leaderboards, challenges, community, and Apex Analysis coaching — one place for every sim you run.`;
 
 export const FOUNDER_CREDENTIALS = [
   "British GT Championship",

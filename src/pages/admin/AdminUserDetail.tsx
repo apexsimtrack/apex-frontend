@@ -24,7 +24,7 @@ import {
 import { postAdminSubscriptionSync, createAdminBetaAccess } from "@/lib/api/adminSubscriptions";
 import { backupAdminCredentialsForImpersonation } from "@/lib/impersonation";
 import { persistSessionTokenFromAuthPayload } from "@/auth/token";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
 import { toast } from "sonner";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
@@ -179,7 +179,7 @@ function AdminUserSubscriptionSection({
       });
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : "Grant failed");
+      toast.error(apiErrorText(e, "Grant failed"));
     },
   });
 
@@ -196,7 +196,7 @@ function AdminUserSubscriptionSection({
       await queryClient.invalidateQueries({ queryKey: ["admin", "metrics"] });
     },
     onError: (e) => {
-      toast.error(e instanceof ApiError ? e.message : "Sync failed");
+      toast.error(apiErrorText(e, "Sync failed"));
     },
   });
 
@@ -586,7 +586,7 @@ export default function AdminUserDetail() {
     },
     onError: (e) => {
       setProfileError(
-        e instanceof ApiError ? e.message : "Could not save profile",
+        apiErrorText(e, "Could not save profile"),
       );
     },
   });
@@ -615,7 +615,7 @@ export default function AdminUserDetail() {
       ) {
         setPasswordError(null);
         toast.warning("Password updated; email not sent", {
-          description: e.message,
+          description: withRequestId(e.message, e),
           duration: 12_000,
         });
         setEditPassword("");
@@ -626,7 +626,7 @@ export default function AdminUserDetail() {
         return;
       }
       setPasswordError(
-        e instanceof ApiError ? e.message : "Could not set password",
+        apiErrorText(e, "Could not set password"),
       );
     },
   });
@@ -641,7 +641,7 @@ export default function AdminUserDetail() {
       await detailQuery.refetch();
     },
     onError: (e) => {
-      setModError(e instanceof ApiError ? e.message : "Could not update role");
+      setModError(apiErrorText(e, "Could not update role"));
     },
   });
 
@@ -656,7 +656,7 @@ export default function AdminUserDetail() {
     },
     onError: (e) => {
       setProfileError(
-        e instanceof ApiError ? e.message : "Could not reset avatar",
+        apiErrorText(e, "Could not reset avatar"),
       );
     },
   });
@@ -678,7 +678,7 @@ export default function AdminUserDetail() {
     },
     onError: (e) => {
       setModError(
-        e instanceof ApiError ? e.message : "Could not update status",
+        apiErrorText(e, "Could not update status"),
       );
     },
   });
@@ -697,7 +697,7 @@ export default function AdminUserDetail() {
       navigate("/admin/users");
     },
     onError: (e) => {
-      setDeleteError(e instanceof ApiError ? e.message : "Delete failed");
+      setDeleteError(apiErrorText(e, "Delete failed"));
     },
   });
 
@@ -744,7 +744,7 @@ export default function AdminUserDetail() {
       window.location.assign("/");
     } catch (e) {
       setModError(
-        e instanceof ApiError ? e.message : "Could not start impersonation",
+        apiErrorText(e, "Could not start impersonation"),
       );
       setImpersonateBusy(false);
     }
@@ -765,7 +765,7 @@ export default function AdminUserDetail() {
       });
     } catch (e) {
       const msg =
-        e instanceof ApiError ? e.message : "Could not reverify email";
+        apiErrorText(e, "Could not reverify email");
       setModError(msg);
       toast.error(msg);
     } finally {
@@ -811,9 +811,7 @@ export default function AdminUserDetail() {
 
       {detailQuery.isError && (
         <p className="text-destructive">
-          {detailQuery.error instanceof ApiError
-            ? detailQuery.error.message
-            : "Failed to load user"}
+          {apiErrorText(detailQuery.error, "Failed to load user")}
         </p>
       )}
 
@@ -1128,7 +1126,10 @@ export default function AdminUserDetail() {
               </div>
             ) : socialGraphQuery.isError ? (
               <p className="text-sm text-muted-foreground">
-                Could not load follow graph summary.
+                {withRequestId(
+                  "Could not load follow graph summary.",
+                  socialGraphQuery.error,
+                )}
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -1370,7 +1371,10 @@ export default function AdminUserDetail() {
                 <p className="text-sm text-muted-foreground">Loading…</p>
               ) : discussionsStartedQuery.isError ? (
                 <p className="text-sm text-destructive">
-                  Could not load discussions.
+                  {withRequestId(
+                    "Could not load discussions.",
+                    discussionsStartedQuery.error,
+                  )}
                 </p>
               ) : !discussionsStartedQuery.data?.items.length ? (
                 <p className="text-sm text-muted-foreground">
@@ -1447,7 +1451,10 @@ export default function AdminUserDetail() {
                 <p className="text-sm text-muted-foreground">Loading…</p>
               ) : discussionsCommentedQuery.isError ? (
                 <p className="text-sm text-destructive">
-                  Could not load commented topics.
+                  {withRequestId(
+                    "Could not load commented topics.",
+                    discussionsCommentedQuery.error,
+                  )}
                 </p>
               ) : !discussionsCommentedQuery.data?.items.length ? (
                 <p className="text-sm text-muted-foreground">

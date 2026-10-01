@@ -23,6 +23,8 @@ class MockXMLHttpRequest {
   });
   status = 0;
   responseText = "";
+  responseHeaders: Record<string, string> = {};
+  headers: Record<string, string> = {};
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
   onabort: (() => void) | null = null;
@@ -32,7 +34,11 @@ class MockXMLHttpRequest {
   }
 
   open = vi.fn();
-  setRequestHeader = vi.fn();
+  setRequestHeader = vi.fn((name: string, value: string) => {
+    this.headers[name] = value;
+  });
+  getResponseHeader = (name: string) =>
+    this.responseHeaders[name.toLowerCase()] ?? null;
   send = vi.fn();
 }
 
@@ -162,5 +168,27 @@ describe("uploadSessionFile", () => {
       status: 0,
     });
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("puts the server request id on the upload error", async () => {
+    const promise = uploadSessionFile(telemetryFile(), undefined, {
+      inactivityTimeoutMs: 60_000,
+    });
+    const xhr = latestXhr();
+    expect(xhr.headers["X-Request-Id"]).toMatch(/^[0-9a-f]{16}$/);
+
+    xhr.status = 400;
+    xhr.responseText = JSON.stringify({
+      message: "bad file",
+      requestId: "aabbccddeeff0011",
+    });
+    xhr.responseHeaders["x-request-id"] = "0011223344556677";
+    xhr.onload?.();
+
+    await expect(promise).rejects.toMatchObject({
+      status: 400,
+      message: "bad file",
+      requestId: "aabbccddeeff0011",
+    });
   });
 });

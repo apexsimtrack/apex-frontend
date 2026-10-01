@@ -13,6 +13,7 @@ import {
   authMe,
   registerAuthExpiredHandler,
   ApiError,
+  withRequestId,
   type AuthUser,
 } from "@/lib/api";
 import { storedAccessTokenSubject } from "@/lib/impersonation";
@@ -165,9 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (e instanceof ApiError && e.status === 0) {
       setError(e.message);
     } else if (e instanceof Error) {
-      setError(e.message);
+      setError(withRequestId(e.message, e));
     } else {
-      setError("Failed to fetch user.");
+      setError(withRequestId("Failed to fetch user.", e));
     }
   }, [tokenPresent, meQuery.isError, meQuery.error]);
 

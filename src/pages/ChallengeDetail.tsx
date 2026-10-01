@@ -11,7 +11,7 @@ import {
   leaveChallenge,
   type ChallengeApiStatus,
 } from "@/lib/api/challenges";
-import { ApiError } from "@/lib/api/errors";
+import { ApiError, withRequestId } from "@/lib/api/errors";
 import { formatChallengeDateTime } from "@/lib/datetime";
 import { cn, formatTrackName } from "@/lib/utils";
 import PageMeta from "@/components/PageMeta";
@@ -205,9 +205,12 @@ export default function ChallengeDetail() {
         (e.code === "BANNED" || e.message === "banned")
       ) {
         setJoinBanMessage(
-          e.message && e.message !== "banned"
-            ? e.message
-            : "You are banned from this challenge",
+          withRequestId(
+            e.message && e.message !== "banned"
+              ? e.message
+              : "You are banned from this challenge",
+            e,
+          ),
         );
       }
     },
@@ -235,23 +238,29 @@ export default function ChallengeDetail() {
         (e.code === "HAS_POSTS" || e.message === "has_posts")
       ) {
         setLeaveError(
-          e.message && e.message !== "has_posts"
-            ? e.message
-            : "You have already posted to this challenge — leaving is no longer allowed.",
+          withRequestId(
+            e.message && e.message !== "has_posts"
+              ? e.message
+              : "You have already posted to this challenge — leaving is no longer allowed.",
+            e,
+          ),
         );
       } else if (e instanceof Error) {
-        setLeaveError(e.message || "Failed to leave challenge");
+        setLeaveError(withRequestId(e.message || "Failed to leave challenge", e));
       } else {
-        setLeaveError("Failed to leave challenge");
+        setLeaveError(withRequestId("Failed to leave challenge", e));
       }
       setConfirmingLeave(false);
     },
   });
 
   const error = isError
-    ? queryError instanceof Error
-      ? queryError.message
-      : "Failed to load challenge"
+    ? withRequestId(
+        queryError instanceof Error
+          ? queryError.message
+          : "Failed to load challenge",
+        queryError,
+      )
     : null;
 
   const detailPath = id ? `/challenge/${id}` : CHALLENGES_PATH;

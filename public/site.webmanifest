@@ -1,0 +1,13 @@
+{
+  "name": "Apex — Sim racing performance hub",
+  "short_name": "Apex",
+  "description": "Session logging, telemetry, leaderboards, challenges, community, and Apex Analysis coaching — one place for every sim you run.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0e0e",
+  "theme_color": "#0e0e0e",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -19,7 +19,7 @@ import {
   appPrimaryButtonClassName,
 } from "@/components/app-ui/appButtonClasses";
 import { wholeNumberInputProps } from "@/lib/inputGuards";
-import { uploadSessionFile, ApiError } from "@/lib/api";
+import { apiErrorText, uploadSessionFile, ApiError, withRequestId } from "@/lib/api";
 import { isProRequiredError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import ChallengeDetailBackLink from "@/pages/challenges/ChallengeDetailBackLink";
@@ -281,15 +281,16 @@ export default function Upload() {
       if (!isMountedRef.current) return;
       if (isProRequiredError(err)) {
         setErrorMessage(
-          "Apex Pro is required to upload telemetry files (.ibt / .duckdb).",
+          withRequestId(
+            "Apex Pro is required to upload telemetry files (.ibt / .duckdb).",
+            err,
+          ),
         );
         setUploadState("error");
         return;
       }
       const message =
-        err instanceof ApiError
-          ? err.message
-          : "Upload failed. Please try again.";
+        apiErrorText(err, "Upload failed. Please try again.");
       setErrorMessage(message);
       setUploadState("error");
     } finally {

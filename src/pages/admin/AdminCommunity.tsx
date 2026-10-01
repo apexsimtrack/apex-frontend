@@ -9,7 +9,7 @@ import {
   type AdminCommunityDiscussionListItem,
   type AdminModerationFlagRow,
 } from "@/lib/api";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { Button } from "@/components/ui/button";
@@ -144,9 +144,7 @@ export default function AdminCommunity() {
           <TabsContent value="posts" className={ADMIN_TABS_CONTENT}>
             {isError && (
               <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {error instanceof ApiError
-                  ? error.message
-                  : "Could not load discussions."}
+                {apiErrorText(error, "Could not load discussions.")}
               </div>
             )}
 
@@ -349,9 +347,7 @@ export default function AdminCommunity() {
           <TabsContent value="flags" className={ADMIN_TABS_CONTENT}>
             {flagsQuery.isError && (
               <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {flagsQuery.error instanceof ApiError
-                  ? flagsQuery.error.message
-                  : "Could not load flags."}
+                {apiErrorText(flagsQuery.error, "Could not load flags.")}
               </div>
             )}
 

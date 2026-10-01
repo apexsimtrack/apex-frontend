@@ -6,7 +6,7 @@ import { ProfileView } from "@/components/profile/ProfileView";
 import { FollowListDialog } from "@/components/FollowListDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveApiUrl } from "@/lib/api/config";
-import { ApiError } from "@/lib/api/errors";
+import { ApiError, withRequestId } from "@/lib/api/errors";
 import {
   getProfileSummaryForUser,
   getProfileRaceHistoryForUser,
@@ -146,9 +146,12 @@ export default function UserProfile() {
       previewQuery.error instanceof ApiError &&
       previewQuery.error.status === 404
     )
-      ? previewQuery.error instanceof Error
-        ? previewQuery.error.message
-        : "Failed to load profile."
+      ? withRequestId(
+          previewQuery.error instanceof Error
+            ? previewQuery.error.message
+            : "Failed to load profile.",
+          previewQuery.error,
+        )
       : null;
 
   const previewLoading = Boolean(id) && previewQuery.isPending;
@@ -174,7 +177,7 @@ export default function UserProfile() {
       // refetching race-history / home feed on follow toggle.
     } catch (e) {
       setFollowActionError(
-        e instanceof Error ? e.message : "Could not update follow status.",
+        withRequestId(e instanceof Error ? e.message : "Could not update follow status.", e),
       );
     } finally {
       setFollowLoading(false);
@@ -200,7 +203,7 @@ export default function UserProfile() {
       queryClient.setQueryData(profileKeys.publicPreview(id), pub);
     } catch (e) {
       setFollowActionError(
-        e instanceof Error ? e.message : "Could not unblock this user.",
+        withRequestId(e instanceof Error ? e.message : "Could not unblock this user.", e),
       );
     } finally {
       setBlockLoading(false);
@@ -330,10 +333,19 @@ export default function UserProfile() {
   return (
     <>
       <PageMeta
-        title={`${displayName} | ${COMPANY_NAME}`}
-        description={userSeoDescription}
+        title={
+          preview.privateProfile
+            ? `Profile | ${COMPANY_NAME}`
+            : `${displayName} | ${COMPANY_NAME}`
+        }
+        description={
+          preview.privateProfile
+            ? `This ${COMPANY_NAME} driver profile is private.`
+            : userSeoDescription
+        }
         path={`${USER_PROFILE_PATH}/${id}`}
-        image={avatarUrl}
+        image={preview.privateProfile ? undefined : avatarUrl}
+        noindex={preview.privateProfile}
       />
       <div className={contentRootClassName}>
         {followActionError && (

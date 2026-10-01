@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { authLogin, authMe, ApiError } from "@/lib/api";
+import { authLogin, authMe, ApiError, withRequestId } from "@/lib/api";
 import { AUTH_ME_QUERY_KEY } from "@/contexts/AuthContext";
 import { prefetchAfterAuthRedirect } from "@/lib/profileQueryKeys";
 import type { WithRootError } from "@/lib/formWithRootError";
@@ -32,6 +32,8 @@ export default function Login() {
   const [suspendedReason, setSuspendedReason] = useState<
     string | null | undefined
   >(undefined);
+  const [suspendedLoginError, setSuspendedLoginError] =
+    useState<ApiError | null>(null);
 
   const form = useForm<WithRootError<LoginFormValues>>({
     resolver: zodResolver(loginFormSchema),
@@ -88,10 +90,12 @@ export default function Login() {
         window.dispatchEvent(new Event("apex:auth"));
         form.setError("root", {
           type: "server",
-          message:
+          message: withRequestId(
             meErr instanceof Error
               ? meErr.message
               : "Could not load your session. Please try again.",
+            meErr,
+          ),
         });
         setLoading(false);
         return;
@@ -104,9 +108,13 @@ export default function Login() {
         setEmailNotVerified(true);
         form.setError("root", {
           type: "server",
-          message: "Please verify your email before signing in.",
+          message: withRequestId(
+            "Please verify your email before signing in.",
+            err,
+          ),
         });
       } else if (err instanceof ApiError && err.code === "ACCOUNT_SUSPENDED") {
+        setSuspendedLoginError(err);
         setSuspendedReason(
           err.suspensionReason != null && err.suspensionReason.trim() !== ""
             ? err.suspensionReason.trim()
@@ -115,7 +123,10 @@ export default function Login() {
       } else {
         form.setError("root", {
           type: "server",
-          message: err instanceof Error ? err.message : "Login failed.",
+          message: withRequestId(
+            err instanceof Error ? err.message : "Login failed.",
+            err,
+          ),
         });
       }
       setLoading(false);
@@ -160,6 +171,7 @@ export default function Login() {
                 authRedirectMessage={authRedirect.message}
                 emailNotVerified={emailNotVerified}
                 suspendedReason={suspendedReason}
+                suspendedLoginError={suspendedLoginError}
               />
             </div>
             <LoginHelpStrip locationState={location.state} />

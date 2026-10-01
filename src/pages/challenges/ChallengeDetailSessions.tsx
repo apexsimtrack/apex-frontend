@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import AppListPaginationFooter from "@/components/app-ui/AppListPaginationFooter";
 import { SkeletonBlock } from "@/components/ui/skeleton";
 import type { EntrantSessionRow } from "@/lib/api/challenges";
-import { ApiError } from "@/lib/api/errors";
+import { ApiError, withRequestId } from "@/lib/api/errors";
 import { formatLapMs } from "@/lib/utils";
 
 interface SessionsData {
@@ -27,12 +27,12 @@ interface ChallengeDetailSessionsProps {
 function sessionsErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.code === "NOT_JOINED" || error.status === 403) {
-      return "Join the challenge to view entrant sessions.";
+      return withRequestId("Join the challenge to view entrant sessions.", error);
     }
-    if (error.message) return error.message;
+    if (error.message) return withRequestId(error.message, error);
   }
-  if (error instanceof Error && error.message) return error.message;
-  return "Failed to load sessions.";
+  if (error instanceof Error && error.message) return withRequestId(error.message, error);
+  return withRequestId("Failed to load sessions.", error);
 }
 
 function SessionsRowsSkeleton() {

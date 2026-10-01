@@ -18,7 +18,7 @@ import type { ManualActivityRequest } from "@/lib/api/manualAndUpload";
 import ManualActivityForm from "@/components/ManualActivityForm";
 import { manualActivityInitialFromAdminDetail } from "@/lib/sessionEditInitialData";
 import { invalidateSessionDerivedCaches } from "@/lib/profileQueryKeys";
-import { ApiError } from "@/lib/api/errors";
+import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog, BaseModal } from "@/components/ui/base-modal";
@@ -196,7 +196,7 @@ export default function AdminSessionDetail() {
       setEditOpen(false);
     } catch (err) {
       setEditFormError(
-        err instanceof ApiError ? err.message : "Failed to update session.",
+        apiErrorText(err, "Failed to update session."),
       );
     }
   }
@@ -347,9 +347,7 @@ export default function AdminSessionDetail() {
 
         {isError && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error instanceof ApiError
-              ? error.message
-              : "Could not load session."}
+            {apiErrorText(error, "Could not load session.")}
           </div>
         )}
 
@@ -458,13 +456,16 @@ export default function AdminSessionDetail() {
                                   "Session export failed.",
                               );
                             }
-                          } catch {
+                          } catch (err) {
                             // Keep polling on transient errors (matches Settings).
                             pollFailures += 1;
                             if (pollFailures >= 8) {
                               setExportBusy(false);
                               toast.error(
-                                "Could not check export status. Try again.",
+                                withRequestId(
+                                  "Could not check export status. Try again.",
+                                  err,
+                                ),
                               );
                               return;
                             }
@@ -475,9 +476,7 @@ export default function AdminSessionDetail() {
                       } catch (e) {
                         setExportBusy(false);
                         toast.error(
-                          e instanceof ApiError
-                            ? e.message
-                            : "Could not start session export.",
+                          apiErrorText(e, "Could not start session export."),
                         );
                       }
                     })();
@@ -1033,9 +1032,7 @@ export default function AdminSessionDetail() {
         />
         {deleteMutation.isError && (
           <p className="text-sm text-destructive">
-            {deleteMutation.error instanceof ApiError
-              ? deleteMutation.error.message
-              : "Delete failed"}
+            {apiErrorText(deleteMutation.error, "Delete failed")}
           </p>
         )}
       </BaseAlertDialog>
@@ -1085,9 +1082,12 @@ export default function AdminSessionDetail() {
       >
         {lapDeleteMutation.isError ? (
           <p className="text-sm text-destructive">
-            {lapDeleteMutation.error instanceof Error
-              ? lapDeleteMutation.error.message
-              : "Delete failed"}
+            {withRequestId(
+              lapDeleteMutation.error instanceof Error
+                ? lapDeleteMutation.error.message
+                : "Delete failed",
+              lapDeleteMutation.error,
+            )}
           </p>
         ) : null}
       </BaseAlertDialog>
@@ -1241,9 +1241,12 @@ export default function AdminSessionDetail() {
         )}
         {lapSaveMutation.isError && (
           <p className="text-sm text-destructive">
-            {lapSaveMutation.error instanceof Error
-              ? lapSaveMutation.error.message
-              : "Save failed"}
+            {withRequestId(
+              lapSaveMutation.error instanceof Error
+                ? lapSaveMutation.error.message
+                : "Save failed",
+              lapSaveMutation.error,
+            )}
           </p>
         )}
       </BaseModal>
