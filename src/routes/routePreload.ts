@@ -3,6 +3,8 @@
  * Keep import paths aligned with lazyPages.ts.
  */
 
+import { getToken } from "@/auth/token";
+
 export function preloadDashboard(): Promise<unknown> {
   return import(
     /* webpackChunkName: "home-dashboard" */ "@/pages/Dashboard"
@@ -71,10 +73,7 @@ export function preloadPersonalBests(): Promise<unknown> {
 
 /** Map primary nav paths → chunk preload. */
 export const routeChunkPreloaders: Record<string, () => Promise<unknown>> = {
-  "/": () =>
-    typeof localStorage !== "undefined" && localStorage.getItem("apex_token")
-      ? preloadDashboard()
-      : preloadPublicHome(),
+  "/": () => (getToken() ? preloadDashboard() : preloadPublicHome()),
   "/leaderboards": preloadLeaderboards,
   "/challenges": preloadChallenges,
   "/community": preloadCommunity,

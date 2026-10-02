@@ -9,7 +9,7 @@ export type SystemStatusLevel =
   | "MAINTENANCE"
   | "MAJOR_OUTAGE";
 
-export type SystemEnvironment = "ALL" | "DEVELOPMENT" | "PRODUCTION";
+export type SystemEnvironment = "ALL" | "DEVELOPMENT" | "STAGING" | "PRODUCTION";
 export type SystemFeatureKey =
   | "MANUAL_UPLOAD"
   | "MANUAL_ACTIVITY"

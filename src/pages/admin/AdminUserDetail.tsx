@@ -23,7 +23,7 @@ import {
 } from "@/lib/api";
 import { postAdminSubscriptionSync, createAdminBetaAccess } from "@/lib/api/adminSubscriptions";
 import { backupAdminCredentialsForImpersonation } from "@/lib/impersonation";
-import { persistSessionTokenFromAuthPayload } from "@/auth/token";
+import { persistSessionTokenFromAuthPayload, setToken } from "@/auth/token";
 import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
 import { toast } from "sonner";
 import PageMeta from "@/components/PageMeta";
@@ -736,9 +736,9 @@ export default function AdminUserDetail() {
     setModError(null);
     try {
       const res = await postAdminUserImpersonate(targetId);
-      backupAdminCredentialsForImpersonation();
-      localStorage.setItem("apex_token", res.token);
-      persistSessionTokenFromAuthPayload({});
+      await backupAdminCredentialsForImpersonation();
+      await setToken(res.token);
+      await persistSessionTokenFromAuthPayload({});
       // Full document load: a SPA navigation would leave already-mounted query observers holding
       // the admin's data, so parts of the UI would keep rendering the wrong identity.
       window.location.assign("/");

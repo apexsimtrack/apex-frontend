@@ -19,7 +19,7 @@ export function useSignOut() {
       } catch {
         // Server revoke is best-effort; always clear local credentials.
       }
-      clearToken();
+      await clearToken();
       setUser(null);
       navigate("/", { replace: true });
     } finally {

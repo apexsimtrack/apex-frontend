@@ -36,7 +36,7 @@ const strictlyNecessaryKeys: StorageKeyRow[] = [
   },
   {
     keyNode: <code className={codeClassName}>apex_token</code>,
-    storage: "localStorage",
+    storage: "Website localStorage; iOS Keychain; Android Keystore",
     purpose: (
       <>
         JWT access token sent as{" "}
@@ -46,7 +46,7 @@ const strictlyNecessaryKeys: StorageKeyRow[] = [
   },
   {
     keyNode: <code className={codeClassName}>apex_session_token</code>,
-    storage: "localStorage",
+    storage: "Website localStorage; iOS Keychain; Android Keystore",
     purpose: (
       <>
         Server auth session ID sent as{" "}
@@ -56,7 +56,7 @@ const strictlyNecessaryKeys: StorageKeyRow[] = [
   },
   {
     keyNode: <code className={codeClassName}>apex_refresh_token</code>,
-    storage: "localStorage",
+    storage: "Website localStorage; iOS Keychain; Android Keystore",
     purpose: "Optional refresh token for silent session renewal",
   },
   {
@@ -82,7 +82,7 @@ const strictlyNecessaryKeys: StorageKeyRow[] = [
         <code className={codeClassName}>apex_refresh_token_admin</code>
       </>
     ),
-    storage: "localStorage",
+    storage: "Website localStorage; iOS Keychain; Android Keystore",
     purpose:
       "Admin session backup during support impersonation (admin users only)",
   },
@@ -198,7 +198,7 @@ export default function CookiePolicy() {
               Cookie &amp; Storage Policy
             </h1>
             <p className="mt-2 font-apex-body text-sm text-apex-on-surface-variant">
-              Last updated: 26 June 2026
+              Last updated: 1 October 2026
             </p>
           </header>
 
@@ -234,12 +234,15 @@ export default function CookiePolicy() {
             <section className="space-y-3">
               <h2 className={h2ClassName}>2. What we use instead of cookies</h2>
               <p className={bodyClassName}>
-                The Service uses{" "}
+                On the website, the Service uses{" "}
                 <strong className="text-apex-on-surface">local storage</strong>{" "}
                 and{" "}
                 <strong className="text-apex-on-surface">session storage</strong>{" "}
-                in your browser (or Capacitor WebView) to persist authentication
-                tokens, preferences, and lightweight UI state. These
+                to persist authentication tokens, preferences, and lightweight
+                UI state. The iOS and Android apps store authentication secrets
+                in the operating system secure store (Keychain on iOS, Keystore
+                on Android), not in WebView local storage. Preferences and
+                lightweight UI state may still use local storage. These
                 technologies are functionally similar to cookies in that data
                 persists on your device, but they are not transmitted
                 automatically with every HTTP request unless our JavaScript
@@ -270,11 +273,15 @@ export default function CookiePolicy() {
             <section className="space-y-3">
               <h2 className={h2ClassName}>4. Capacitor mobile app</h2>
               <p className={bodyClassName}>
-                Our iOS and Android builds use a Capacitor WebView that shares
-                the same local storage keys as the web application. We do not
-                use Capacitor Preferences or native secure storage plugins for
-                authentication at this time. Signing out clears authentication
-                keys from WebView storage.
+                Our iOS and Android builds use a Capacitor WebView for the
+                app interface. Authentication tokens are stored in the iOS
+                Keychain and the Android Keystore, not in WebView local
+                storage and not in Capacitor Preferences. On first launch after
+                this change, existing WebView copies are moved into that secure
+                store and then deleted. Signing out clears the secure-store
+                entries and any leftover WebView copies. Android backup is
+                disabled for the app, so those secrets are not included in a
+                cloud or device backup.
               </p>
             </section>
 
@@ -292,7 +299,10 @@ export default function CookiePolicy() {
                 <li>
                   <code className={codeClassName}>token.json</code> — access
                   JWT, optional refresh token, and server session token (
-                  <code className={codeClassName}>X-Apex-Session</code>);
+                  <code className={codeClassName}>X-Apex-Session</code>),
+                  encrypted at rest with the operating system credential store
+                  (macOS Keychain, Windows DPAPI, or Linux libsecret). The file
+                  is ciphertext, not plaintext JSON.
                 </li>
                 <li>
                   <code className={codeClassName}>
@@ -367,16 +377,19 @@ export default function CookiePolicy() {
               <ul className={listClassName}>
                 <li>
                   <strong className="text-apex-on-surface">Sign out:</strong>{" "}
-                  removes authentication tokens from local storage via the app’s
-                  sign-out flow.
+                  removes authentication tokens from website local storage, and
+                  from the iOS Keychain or Android Keystore on the mobile apps,
+                  via the app’s sign-out flow.
                 </li>
                 <li>
                   <strong className="text-apex-on-surface">
                     Browser settings:
                   </strong>{" "}
                   you can clear local storage and session storage through your
-                  browser or device settings. Clearing auth keys will sign you
-                  out and may reset UI preferences.
+                  browser or device settings. On the website, clearing
+                  authentication keys signs you out and may reset UI
+                  preferences. On the mobile apps, sign out in the app; clearing
+                  WebView storage does not remove Keychain or Keystore entries.
                 </li>
                 <li>
                   <strong className="text-apex-on-surface">Agent:</strong> sign

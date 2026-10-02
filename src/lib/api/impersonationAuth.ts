@@ -29,13 +29,13 @@ export async function postStopImpersonation(): Promise<StopImpersonationResponse
   );
 }
 
-/** Stop impersonation via API, falling back to localStorage admin backups. */
+/** Stop impersonation via API, falling back to stored admin backups. */
 export async function exitImpersonationSession(): Promise<boolean> {
   let apiError: unknown;
   try {
     const data = await postStopImpersonation();
     if (typeof data?.token === "string" && data.token.trim()) {
-      applyRestoredAdminCredentials({
+      await applyRestoredAdminCredentials({
         token: data.token.trim(),
         sessionToken: data.sessionToken,
         refreshToken: data.refreshToken,
@@ -46,7 +46,7 @@ export async function exitImpersonationSession(): Promise<boolean> {
   } catch (err) {
     apiError = err;
   }
-  if (restoreAdminCredentialsFromBackup()) {
+  if (await restoreAdminCredentialsFromBackup()) {
     dispatchExitImpersonation();
     return true;
   }

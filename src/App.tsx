@@ -14,6 +14,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense, type ReactNode } from "react";
+import { getToken } from "@/auth/token";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ScrollToTop from "./components/ScrollToTop";
 import ProtectedRoute from "./auth/ProtectedRoute";
@@ -111,9 +112,7 @@ function AppShell({ children }: { children: ReactNode }) {
   const onGuestAuthPage = isGuestAuthPath(location.pathname);
   const isHomePath =
     location.pathname === "/" || location.pathname === "";
-  const tokenPresent =
-    typeof localStorage !== "undefined" &&
-    Boolean(localStorage.getItem("apex_token"));
+  const tokenPresent = Boolean(getToken());
   const [homeReady, setHomeReady] = useState(!isHomePath);
   const [booted, setBooted] = useState(false);
 

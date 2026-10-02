@@ -1037,6 +1037,7 @@ function FeaturesTab() {
               >
                 <option value="ALL">All environments</option>
                 <option value="DEVELOPMENT">Development only</option>
+                <option value="STAGING">Staging only</option>
                 <option value="PRODUCTION">Production only</option>
               </select>
             </div>

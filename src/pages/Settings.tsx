@@ -363,7 +363,7 @@ export default function Settings() {
     } catch {
       // Server revoke is best-effort; always clear local credentials.
     }
-    clearToken();
+    await clearToken();
     navigate(AUTH_PATHS.login, { replace: true });
   }, [navigate]);
 
@@ -494,7 +494,7 @@ export default function Settings() {
       setDeleteSubmitting(true);
       try {
         await deleteAccount(values.password);
-        clearToken();
+        await clearToken();
         setUser(null);
         setDeleteDialogOpen(false);
         resetDeleteDialog();

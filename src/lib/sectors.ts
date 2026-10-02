@@ -1,12 +1,9 @@
-export const MAX_SECTOR_COUNT = 64;
+import { MAX_SECTOR_COUNT, SECTOR_TIMING_SOURCES } from "@apexsimtracker/session-contract/sims";
+
+export { MAX_SECTOR_COUNT };
 
 export type SectorTimingSource =
-  | "IRACING_NATIVE"
-  | "F1_NATIVE"
-  | "LMU_NATIVE"
-  | "MANUAL"
-  | "LEGACY_IRACING_GEOMETRIC"
-  | "UNAVAILABLE"
+  | (typeof SECTOR_TIMING_SOURCES)[number]
   | string;
 
 export type LegacySectorTriplet = {

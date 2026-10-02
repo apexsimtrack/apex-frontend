@@ -16,6 +16,7 @@ import {
   withRequestId,
   type AuthUser,
 } from "@/lib/api";
+import { getToken } from "@/auth/token";
 import { storedAccessTokenSubject } from "@/lib/impersonation";
 import { resolveAuthLoading, resolveAuthUser } from "@/auth/authSessionState";
 
@@ -34,10 +35,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function readHasToken(): boolean {
-  return (
-    typeof localStorage !== "undefined" &&
-    Boolean(localStorage.getItem("apex_token"))
-  );
+  return Boolean(getToken());
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -54,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setHasTokenState(readHasToken());
   }, []);
 
-  /** Keep token state, auth/me cache, and private query caches aligned with localStorage. */
+  /** Keep token state, auth/me cache, and private query caches aligned with stored credentials. */
   const applyTokenStorageToQueryClient = useCallback(() => {
     syncTokenFromStorage();
     if (!readHasToken()) {
