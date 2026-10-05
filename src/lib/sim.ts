@@ -1,4 +1,4 @@
-import { LAP_UPLOAD_SIM_FORM_TAGS, VALID_SIMS } from "@apexsimtracker/session-contract/sims";
+import { LAP_UPLOAD_SIM_FORM_TAGS, VALID_SIMS } from "@apexsimtrack/session-contract/sims";
 
 /**
  * Sim Display Helpers
@@ -7,7 +7,7 @@ import { LAP_UPLOAD_SIM_FORM_TAGS, VALID_SIMS } from "@apexsimtracker/session-co
  * - {@link SUPPORTED_SIM_ENUMS} — DB / API responses (IRACING | F1_25 | LMU)
  * - {@link CANONICAL_SIM_API_KEYS} — agent & API form fields (iracing | f1_25 | lmu)
  *
- * Canonical keys and multipart tags come from `@apexsimtracker/session-contract`.
+ * Canonical keys and multipart tags come from `@apexsimtrack/session-contract`.
  * `SimKey` below stays a display alias and is wider than the upload contract.
  */
 

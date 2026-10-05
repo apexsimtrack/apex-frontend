@@ -1,4 +1,4 @@
-import { MAX_SECTOR_COUNT, SECTOR_TIMING_SOURCES } from "@apexsimtracker/session-contract/sims";
+import { MAX_SECTOR_COUNT, SECTOR_TIMING_SOURCES } from "@apexsimtrack/session-contract/sims";
 
 export { MAX_SECTOR_COUNT };
 
