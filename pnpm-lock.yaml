@@ -17,6 +17,9 @@ importers:
       '@aparajita/capacitor-secure-storage':
         specifier: 8.0.1
         version: 8.0.1
+      '@apexsimtrack/session-contract':
+        specifier: 1.0.0
+        version: 1.0.0
       '@capacitor/app':
         specifier: 8.0.1
         version: 8.0.1(@capacitor/core@8.0.2)
@@ -208,6 +211,9 @@ packages:
   '@aparajita/capacitor-secure-storage@8.0.1':
     resolution: {integrity: sha512-NSYIQtH6TyBgL3myumQGcCE3iecq2PtGNFlGxl1fJKEU37Dv5DudzDlwg42cgbVxCm1ay72g4X7rTSAvKULsVg==}
     engines: {node: '>=20.0.0'}
+
+  '@apexsimtrack/session-contract@1.0.0':
+    resolution: {integrity: sha512-6Cap8Fea9/U0fF7HaVGJNszsv+vn64zO49yrg/4XCDgobejm4XKGqpuSwjSnRXy8OFH85k4SZnNuGmzpsUWoMw==, tarball: https://npm.pkg.github.com/download/@apexsimtrack/session-contract/1.0.0/b6552bdccb7ba5aeb07df320cd75053296c74a44}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -3825,6 +3831,10 @@ snapshots:
       '@capacitor/core': 8.0.2
       '@capacitor/ios': 8.0.2(@capacitor/core@8.0.2)
       '@capacitor/keyboard': 8.0.3(@capacitor/core@8.0.2)
+
+  '@apexsimtrack/session-contract@1.0.0':
+    dependencies:
+      zod: 4.4.3
 
   '@babel/code-frame@7.29.7':
     dependencies:
