@@ -9,7 +9,7 @@ import {
   type AdminDuplicateCluster,
   type AdminSessionListRow,
 } from "@/lib/api";
-import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
+import { apiErrorText, withRequestId } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog } from "@/components/ui/base-modal";

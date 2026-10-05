@@ -18,7 +18,7 @@ import type { ManualActivityRequest } from "@/lib/api/manualAndUpload";
 import ManualActivityForm from "@/components/ManualActivityForm";
 import { manualActivityInitialFromAdminDetail } from "@/lib/sessionEditInitialData";
 import { invalidateSessionDerivedCaches } from "@/lib/profileQueryKeys";
-import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
+import { apiErrorText, withRequestId } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog, BaseModal } from "@/components/ui/base-modal";

@@ -12,7 +12,7 @@ import {
   deleteAdminCommunityDiscussionImage,
   getDiscussionCategoryLabel,
 } from "@/lib/api";
-import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
+import { apiErrorText, withRequestId } from "@/lib/api/errors";
 import { validateDiscussionImageFile } from "@/lib/api/community";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";

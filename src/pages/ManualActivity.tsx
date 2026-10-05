@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, Trophy, Upload as UploadIcon } from "lucide-react";
-import { apiErrorText, createManualActivity, getChallenge, ApiError } from "@/lib/api";
+import { apiErrorText, createManualActivity, getChallenge } from "@/lib/api";
 import type { ManualActivityRequest } from "@/lib/api";
 import type { ManualActivityInitialData } from "@/components/ManualActivityForm";
 import PageMeta from "@/components/PageMeta";

@@ -11,7 +11,7 @@ import {
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
-import { apiErrorText, ApiError, withRequestId } from "@/lib/api/errors";
+import { apiErrorText, withRequestId } from "@/lib/api/errors";
 import { deleteSession, patchSessionCaption } from "@/lib/api/manualAndUpload";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { publicSessionUrl } from "@/lib/siteMeta";

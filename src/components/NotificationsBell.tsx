@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { RaceHistoryPagination } from "@/components/RaceHistoryPagination";
 import { withRequestId,
   acceptFollowRequest,
-  ApiError,
   clearNotifications,
   declineFollowRequest,
   getNotifications,

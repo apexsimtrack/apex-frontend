@@ -5,7 +5,7 @@ import { ArrowLeft, CheckCircle } from "lucide-react";
 import PageMeta from "@/components/PageMeta";
 import { buildPageTitle } from "@/lib/seo";
 import { COMPANY_NAME } from "@/lib/siteMeta";
-import { apiErrorText, apiGet, updateActivity, ApiError, withRequestId } from "@/lib/api";
+import { apiErrorText, apiGet, updateActivity, withRequestId } from "@/lib/api";
 import type { ManualActivityRequest } from "@/lib/api";
 import {
   manualActivityInitialFromPublicDetail,

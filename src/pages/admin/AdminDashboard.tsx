@@ -23,7 +23,6 @@ import {
   type AuthSessionsMetrics,
   type RacingMetrics,
   type SocialMetrics,
-  ApiError,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { SkeletonBlock } from "@/components/ui/skeleton";

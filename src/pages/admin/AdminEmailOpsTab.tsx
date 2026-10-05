@@ -7,7 +7,7 @@ import {
   fetchAdminPasswordResetPending,
   postAdminEmailVerificationResend,
 } from "@/lib/api";
-import { apiErrorText, ApiError } from "@/lib/api/errors";
+import { apiErrorText } from "@/lib/api/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";

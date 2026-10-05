@@ -11,7 +11,7 @@ import {
   type AdminUserFollowListRow,
   type AdminUserSocialGraph,
 } from "@/lib/api";
-import { apiErrorText, ApiError } from "@/lib/api/errors";
+import { apiErrorText } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
