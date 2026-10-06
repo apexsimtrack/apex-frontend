@@ -9,7 +9,7 @@ import {
   type AdminCommunityDiscussionListItem,
   type AdminModerationFlagRow,
 } from "@/lib/api";
-import { apiErrorText, ApiError } from "@/lib/api/errors";
+import { apiErrorText } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { Button } from "@/components/ui/button";

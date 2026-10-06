@@ -1,9 +1,10 @@
 import { getApiBase } from "./config";
 import { getOrCreateDeviceId } from "@/auth/deviceId";
 import {
-  APEX_REFRESH_TOKEN_KEY,
-  APEX_SESSION_TOKEN_KEY,
   clearToken,
+  getRefreshToken,
+  getSessionToken,
+  getToken,
   persistSessionTokenFromAuthPayload,
   setToken,
 } from "@/auth/token";
@@ -58,21 +59,20 @@ type ErrorParseResult = {
   requestId?: string;
 };
 
-const TOKEN_KEY = "apex_token";
 const AUTH_REFRESH_PATH = "/api/auth/refresh";
 
 /**
  * Auth headers shared by fetchApi and XMLHttpRequest uploads (manual .ibt).
  * JWT must pair with X-Apex-Session for sessionAuthHook routes.
+ * Reads the in-memory/localStorage adapter. Does not touch the OS secure store.
  */
 export function buildApiAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "X-Request-Id": createApexRequestId(),
   };
-  if (typeof localStorage === "undefined") return headers;
 
-  const token = localStorage.getItem(TOKEN_KEY);
-  const serverSession = localStorage.getItem(APEX_SESSION_TOKEN_KEY);
+  const token = getToken();
+  const serverSession = getSessionToken();
   const deviceId = getOrCreateDeviceId();
 
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -144,14 +144,12 @@ type RefreshOutcome =
 let refreshInFlight: Promise<RefreshOutcome> | null = null;
 
 function storedRefreshToken(): string | null {
-  if (typeof localStorage === "undefined") return null;
-  const raw = localStorage.getItem(APEX_REFRESH_TOKEN_KEY)?.trim();
+  const raw = getRefreshToken()?.trim();
   return raw || null;
 }
 
 function storedAccessToken(): string | null {
-  if (typeof localStorage === "undefined") return null;
-  const raw = localStorage.getItem(TOKEN_KEY)?.trim();
+  const raw = getToken()?.trim();
   return raw || null;
 }
 
@@ -190,7 +188,7 @@ async function restoreAdminAfterImpersonation401(): Promise<boolean> {
             refreshToken?: string;
           };
           if (typeof data?.token === "string" && data.token.trim()) {
-            applyRestoredAdminCredentials({
+            await applyRestoredAdminCredentials({
               token: data.token.trim(),
               sessionToken: data.sessionToken,
               refreshToken: data.refreshToken,
@@ -199,7 +197,7 @@ async function restoreAdminAfterImpersonation401(): Promise<boolean> {
           }
         }
       } catch {
-        // Fall back to localStorage backups.
+        // Fall back to stored admin backups.
       }
     }
     return restoreAdminCredentialsFromBackup();
@@ -240,9 +238,9 @@ async function performRefresh(
 
     // Write access first: once other tabs observe the rotated refresh token,
     // buildApiAuthHeaders() can already read the matching new access token.
-    setToken(data.token);
+    await setToken(data.token);
     if (typeof data.refreshToken === "string" && data.refreshToken.trim()) {
-      persistSessionTokenFromAuthPayload({
+      await persistSessionTokenFromAuthPayload({
         refreshToken: data.refreshToken,
       });
     }
@@ -306,7 +304,7 @@ function parseSuccessBody<T>(text: string): T {
 }
 
 // Central fetch handler (exported for auth/api and other modules that need it).
-// Token is read from localStorage "apex_token". On 401, try refresh once, then notifyAuthExpired
+// Token is read from the auth storage adapter. On 401, try refresh once, then notifyAuthExpired
 // (unless skipAuthExpiredCheck) so AuthContext can sync user state.
 export async function fetchApi<T>(
   method: string,
@@ -415,7 +413,7 @@ export async function fetchApi<T>(
         didRetryAfterRefresh: true,
       });
     }
-    clearToken();
+    await clearToken();
   }
 
   await notifyAuthExpired(skipAuthExpiredCheck, res.status);

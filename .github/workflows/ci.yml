@@ -1,0 +1,53 @@
+# CI quality checks for the web, admin, iOS, and Android app (one Vite codebase).
+# Playwright (pnpm test:e2e) stays local until a later isolated job.
+# It boots the sibling API repo and a database, and must never target
+# production Neon (bold-haze) or production API (apex-1-y319).
+
+name: CI
+
+on:
+  push:
+    branches: [dev, staging, main, master]
+  pull_request:
+    branches: [dev, staging, main, master]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@apexsimtrack"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Production build
+        run: pnpm build

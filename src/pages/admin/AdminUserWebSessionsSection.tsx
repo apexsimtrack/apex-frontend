@@ -9,7 +9,7 @@ import {
   postAdminAuthSessionsRecomputeRisk,
   type AdminAuthSessionDetailRow,
 } from "@/lib/api";
-import { apiErrorText, ApiError } from "@/lib/api/errors";
+import { apiErrorText } from "@/lib/api/errors";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

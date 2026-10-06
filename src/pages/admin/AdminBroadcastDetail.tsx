@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { BaseAlertDialog } from "@/components/ui/base-modal";
 import {
   apiErrorText,
-  ApiError,
   archiveBroadcast,
   deleteBroadcast,
   getAdminBroadcast,

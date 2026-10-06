@@ -113,7 +113,7 @@ export async function patchSystemFeatureViaAdminApi(
   featureKey: SystemFeatureKey,
   body: {
     enabled: boolean;
-    environment?: "ALL" | "DEVELOPMENT" | "PRODUCTION";
+    environment?: "ALL" | "DEVELOPMENT" | "STAGING" | "PRODUCTION";
     reason?: string;
   },
 ): Promise<void> {

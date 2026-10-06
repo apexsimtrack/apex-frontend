@@ -19,7 +19,7 @@ import {
   appPrimaryButtonClassName,
 } from "@/components/app-ui/appButtonClasses";
 import { wholeNumberInputProps } from "@/lib/inputGuards";
-import { apiErrorText, uploadSessionFile, ApiError, withRequestId } from "@/lib/api";
+import { apiErrorText, uploadSessionFile, withRequestId } from "@/lib/api";
 import { isProRequiredError } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import ChallengeDetailBackLink from "@/pages/challenges/ChallengeDetailBackLink";

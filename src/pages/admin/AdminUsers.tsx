@@ -6,7 +6,7 @@ import {
   postAdminDisposableEmailScan,
   type AdminUserListParams,
 } from "@/lib/api";
-import { apiErrorText, ApiError } from "@/lib/api/errors";
+import { apiErrorText } from "@/lib/api/errors";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { BaseModal } from "@/components/ui/base-modal";

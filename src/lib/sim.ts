@@ -1,9 +1,14 @@
+import { LAP_UPLOAD_SIM_FORM_TAGS, VALID_SIMS } from "@apexsimtrack/session-contract/sims";
+
 /**
  * Sim Display Helpers
  *
  * Active Apex sims (must stay aligned with backend `schema.prisma` Sim + agent uploads):
  * - {@link SUPPORTED_SIM_ENUMS} — DB / API responses (IRACING | F1_25 | LMU)
  * - {@link CANONICAL_SIM_API_KEYS} — agent & API form fields (iracing | f1_25 | lmu)
+ *
+ * Canonical keys and multipart tags come from `@apexsimtrack/session-contract`.
+ * `SimKey` below stays a display alias and is wider than the upload contract.
  */
 
 /** Prisma `Sim` enum values currently supported on Apex. */
@@ -11,7 +16,7 @@ export const SUPPORTED_SIM_ENUMS = ["IRACING", "F1_25", "LMU"] as const;
 export type SupportedSimEnum = (typeof SUPPORTED_SIM_ENUMS)[number];
 
 /** Lowercase API/agent keys for the same sims (multipart `sim`, session filters). */
-export const CANONICAL_SIM_API_KEYS = ["iracing", "f1_25", "lmu"] as const;
+export const CANONICAL_SIM_API_KEYS = VALID_SIMS;
 export type CanonicalSimApiKey = (typeof CANONICAL_SIM_API_KEYS)[number];
 
 /** Normalize DB enums, form values, and legacy upload tags to one catalog API key. */
@@ -39,13 +44,7 @@ export function toSupportedSimEnum(
   return null;
 }
 
-/** Multipart upload tags including legacy F1 tag (server normalizes f125 → f1_25). */
-export const LAP_UPLOAD_SIM_FORM_TAGS = [
-  "iracing",
-  "f1_25",
-  "f125",
-  "lmu",
-] as const;
+export { LAP_UPLOAD_SIM_FORM_TAGS };
 
 export type SimKey = SupportedSimEnum | "F1_24" | "ACC" | "AC" | string;
 

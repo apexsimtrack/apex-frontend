@@ -43,6 +43,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@apexsimtrack/session-contract": "1.0.0",
+    "@aparajita/capacitor-secure-storage": "8.0.1",
     "@capacitor/app": "8.0.1",
     "@capacitor/browser": "8.0.3",
     "@capacitor/core": "8.0.2",

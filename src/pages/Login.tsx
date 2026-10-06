@@ -14,7 +14,11 @@ import {
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { getSafeReturnPath, parseAuthRedirectState } from "@/auth/authRedirect";
-import { persistSessionTokenFromAuthPayload } from "@/auth/token";
+import {
+  persistSessionTokenFromAuthPayload,
+  removeStoredAccessToken,
+  setToken,
+} from "@/auth/token";
 import LoginWelcomePanel from "./login/LoginWelcomePanel";
 import LoginFormCard from "./login/LoginFormCard";
 import LoginHelpStrip from "./login/LoginHelpStrip";
@@ -72,8 +76,8 @@ export default function Login() {
         setLoading(false);
         return;
       }
-      localStorage.setItem("apex_token", token);
-      persistSessionTokenFromAuthPayload(data);
+      await setToken(token);
+      await persistSessionTokenFromAuthPayload(data);
       try {
         await queryClient.fetchQuery({
           queryKey: AUTH_ME_QUERY_KEY,
@@ -85,8 +89,8 @@ export default function Login() {
           postLoginPath,
         );
       } catch (meErr) {
-        localStorage.removeItem("apex_token");
-        persistSessionTokenFromAuthPayload({});
+        await removeStoredAccessToken();
+        await persistSessionTokenFromAuthPayload({});
         window.dispatchEvent(new Event("apex:auth"));
         form.setError("root", {
           type: "server",

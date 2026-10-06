@@ -10,7 +10,6 @@ import { BaseAlertDialog } from "@/components/ui/base-modal";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   apiErrorText,
-  ApiError,
   deleteCampaign,
   fetchCampaignDeliveries,
   getAdminCampaign,

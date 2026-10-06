@@ -14,7 +14,11 @@ import {
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
 import { getSafeReturnPath, parseAuthRedirectState } from "@/auth/authRedirect";
-import { persistSessionTokenFromAuthPayload } from "@/auth/token";
+import {
+  persistSessionTokenFromAuthPayload,
+  removeStoredAccessToken,
+  setToken,
+} from "@/auth/token";
 import SignupWelcomePanel from "./signup/SignupWelcomePanel";
 import SignupFormCard from "./signup/SignupFormCard";
 import SignupHelpStrip from "./signup/SignupHelpStrip";
@@ -47,8 +51,8 @@ export default function Signup() {
       const hasToken = token && typeof token === "string";
 
       if (hasToken && !data.requiresVerification) {
-        localStorage.setItem("apex_token", token as string);
-        persistSessionTokenFromAuthPayload(data as { sessionToken?: string });
+        await setToken(token as string);
+        await persistSessionTokenFromAuthPayload(data as { sessionToken?: string });
         try {
           await queryClient.fetchQuery({
             queryKey: AUTH_ME_QUERY_KEY,
@@ -60,8 +64,8 @@ export default function Signup() {
             getSafeReturnPath(authRedirect.from, "/profile"),
           );
         } catch (meErr) {
-          localStorage.removeItem("apex_token");
-          persistSessionTokenFromAuthPayload({});
+          await removeStoredAccessToken();
+          await persistSessionTokenFromAuthPayload({});
           window.dispatchEvent(new Event("apex:auth"));
           form.setError("root", {
             type: "server",

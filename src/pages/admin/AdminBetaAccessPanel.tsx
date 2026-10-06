@@ -17,7 +17,7 @@ import {
   type AdminBetaAccessUpdatePayload,
   type AdminBetaAccessWritePayload,
 } from "@/lib/api/adminSubscriptions";
-import { apiErrorText, ApiError } from "@/lib/api/errors";
+import { apiErrorText } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 import { BaseAlertDialog, BaseModal } from "@/components/ui/base-modal";
 import { Button } from "@/components/ui/button";

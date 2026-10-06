@@ -33,7 +33,7 @@ import {
   type ReportReason,
   type ReportTargetType,
 } from "@/lib/api/ugcModeration";
-import { apiErrorText, ApiError } from "@/lib/api/errors";
+import { apiErrorText } from "@/lib/api/errors";
 import {
   applyOptimisticBlock,
   applyOptimisticHide,

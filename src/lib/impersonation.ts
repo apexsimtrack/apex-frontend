@@ -6,9 +6,18 @@ import {
   APEX_TOKEN_ADMIN_KEY,
   LEGACY_SESSION_ADMIN_BACKUP_KEY,
   clearAdminCredentialBackups,
+  getRefreshToken,
+  getSessionToken,
+  getToken,
   persistSessionTokenFromAuthPayload,
   setToken,
 } from "@/auth/token";
+import {
+  TOKEN_KEY,
+  flushAuthSecrets,
+  readAuthSecret,
+  stageAuthSecret,
+} from "@/auth/authSecretStore";
 
 const IMPERSONATION_BANNER_HIDDEN_KEY = "apex_impersonation_banner_hidden";
 
@@ -34,8 +43,7 @@ export function parseStoredAccessTokenPayload(): Record<
   string,
   unknown
 > | null {
-  if (typeof localStorage === "undefined") return null;
-  const token = localStorage.getItem("apex_token");
+  const token = getToken();
   if (!token?.trim()) return null;
   const parts = token.split(".");
   if (parts.length < 2) return null;
@@ -61,32 +69,36 @@ export function storedAccessTokenSubject(): string | null {
   return typeof sub === "string" ? sub : null;
 }
 
-export function backupAdminCredentialsForImpersonation(): void {
-  if (typeof localStorage === "undefined") return;
-  try {
-    sessionStorage.removeItem(IMPERSONATION_BANNER_HIDDEN_KEY);
-  } catch {
-    /* ignore */
+export async function backupAdminCredentialsForImpersonation(): Promise<void> {
+  if (typeof sessionStorage !== "undefined") {
+    try {
+      sessionStorage.removeItem(IMPERSONATION_BANNER_HIDDEN_KEY);
+    } catch {
+      /* ignore */
+    }
   }
-  const cur = localStorage.getItem("apex_token");
-  if (cur?.trim()) localStorage.setItem(APEX_TOKEN_ADMIN_KEY, cur);
-  const curSession = localStorage.getItem(APEX_SESSION_TOKEN_KEY);
+  const cur = getToken();
+  if (cur?.trim()) stageAuthSecret(APEX_TOKEN_ADMIN_KEY, cur.trim());
+  const curSession = getSessionToken();
   if (curSession?.trim()) {
-    localStorage.setItem(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY, curSession.trim());
+    stageAuthSecret(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY, curSession.trim());
   } else {
-    localStorage.removeItem(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY);
+    stageAuthSecret(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY, null);
   }
-  const curRefresh = localStorage.getItem(APEX_REFRESH_TOKEN_KEY);
+  const curRefresh = getRefreshToken();
   if (curRefresh?.trim()) {
-    localStorage.setItem(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY, curRefresh.trim());
+    stageAuthSecret(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY, curRefresh.trim());
   } else {
-    localStorage.removeItem(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY);
+    stageAuthSecret(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY, null);
   }
-  try {
-    sessionStorage.removeItem(LEGACY_SESSION_ADMIN_BACKUP_KEY);
-  } catch {
-    /* ignore */
+  if (typeof sessionStorage !== "undefined") {
+    try {
+      sessionStorage.removeItem(LEGACY_SESSION_ADMIN_BACKUP_KEY);
+    } catch {
+      /* ignore */
+    }
   }
+  await flushAuthSecrets();
 }
 
 export function isImpersonationBannerHidden(): boolean {
@@ -109,45 +121,53 @@ export function hideImpersonationBanner(): void {
 }
 
 export function readAdminSessionBackup(): string | null {
-  if (typeof localStorage === "undefined") return null;
-  return localStorage.getItem(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY)?.trim() || null;
+  return readAuthSecret(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY)?.trim() || null;
 }
 
-export function applyRestoredAdminCredentials(payload: {
+export async function applyRestoredAdminCredentials(payload: {
   token: string;
   sessionToken?: string;
   refreshToken?: string;
-}): void {
-  setToken(payload.token);
-  persistSessionTokenFromAuthPayload({
+}): Promise<void> {
+  await setToken(payload.token);
+  await persistSessionTokenFromAuthPayload({
     sessionToken: payload.sessionToken,
     refreshToken: payload.refreshToken,
   });
-  clearAdminCredentialBackups();
+  await clearAdminCredentialBackups();
 }
 
-/** Restore admin JWT/session/refresh from localStorage backups. Returns false if no admin JWT. */
-export function restoreAdminCredentialsFromBackup(): boolean {
-  if (typeof localStorage === "undefined") return false;
-  const admin = localStorage.getItem(APEX_TOKEN_ADMIN_KEY);
+/** Restore admin JWT/session/refresh from stored backups. Returns false if no admin JWT. */
+export async function restoreAdminCredentialsFromBackup(): Promise<boolean> {
+  const admin = readAuthSecret(APEX_TOKEN_ADMIN_KEY);
   if (!admin?.trim()) {
-    clearAdminCredentialBackups();
+    await clearAdminCredentialBackups();
     return false;
   }
-  const adminSession = localStorage.getItem(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY);
-  const adminRefresh = localStorage.getItem(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY);
-  localStorage.setItem("apex_token", admin);
+  const adminSession = readAuthSecret(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY);
+  const adminRefresh = readAuthSecret(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY);
+  stageAuthSecret(APEX_TOKEN_ADMIN_KEY, null);
+  stageAuthSecret(TOKEN_KEY, admin.trim());
   if (adminSession?.trim()) {
-    localStorage.setItem(APEX_SESSION_TOKEN_KEY, adminSession.trim());
+    stageAuthSecret(APEX_SESSION_TOKEN_KEY, adminSession.trim());
   } else {
-    localStorage.removeItem(APEX_SESSION_TOKEN_KEY);
+    stageAuthSecret(APEX_SESSION_TOKEN_KEY, null);
   }
   if (adminRefresh?.trim()) {
-    localStorage.setItem(APEX_REFRESH_TOKEN_KEY, adminRefresh.trim());
+    stageAuthSecret(APEX_REFRESH_TOKEN_KEY, adminRefresh.trim());
   } else {
-    localStorage.removeItem(APEX_REFRESH_TOKEN_KEY);
+    stageAuthSecret(APEX_REFRESH_TOKEN_KEY, null);
   }
-  clearAdminCredentialBackups();
+  stageAuthSecret(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY, null);
+  stageAuthSecret(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY, null);
+  if (typeof sessionStorage !== "undefined") {
+    try {
+      sessionStorage.removeItem(LEGACY_SESSION_ADMIN_BACKUP_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+  await flushAuthSecrets();
   return true;
 }
 

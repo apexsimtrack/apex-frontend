@@ -1,73 +1,99 @@
-const TOKEN_KEY = "apex_token";
+import {
+  APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY,
+  APEX_REFRESH_TOKEN_KEY,
+  APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY,
+  APEX_SESSION_TOKEN_KEY,
+  APEX_TOKEN_ADMIN_KEY,
+  LEGACY_SESSION_ADMIN_BACKUP_KEY,
+  TOKEN_KEY,
+  flushAuthSecrets,
+  readAuthSecret,
+  stageAuthSecret,
+} from "./authSecretStore";
 
-/** Server-side AuthSession token (paired with JWT); sent as X-Apex-Session for tracking/revoke. */
-export const APEX_SESSION_TOKEN_KEY = "apex_session_token";
-
-/** Admin JWT saved while viewing as another user; restored on exit. */
-export const APEX_TOKEN_ADMIN_KEY = "apex_token_admin";
-
-/** Saved next to `apex_token_admin` while impersonating so exit restores admin browser session. */
-export const APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY = "apex_session_token_admin";
-
-/** Saved next to `apex_token_admin` so exit can silent-refresh the restored admin JWT. */
-export const APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY = "apex_refresh_token_admin";
-
-/** Legacy sessionStorage copy of the admin JWT; no longer written. */
-export const LEGACY_SESSION_ADMIN_BACKUP_KEY = "apex_token_admin_backup";
+export {
+  APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY,
+  APEX_REFRESH_TOKEN_KEY,
+  APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY,
+  APEX_SESSION_TOKEN_KEY,
+  APEX_TOKEN_ADMIN_KEY,
+  LEGACY_SESSION_ADMIN_BACKUP_KEY,
+};
 
 /** Drop impersonation restore material so a later `/api/auth/refresh` cannot mint admin tokens. */
-export function clearAdminCredentialBackups(): void {
-  if (typeof localStorage === "undefined") return;
-  localStorage.removeItem(APEX_TOKEN_ADMIN_KEY);
-  localStorage.removeItem(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY);
-  localStorage.removeItem(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY);
-  try {
-    sessionStorage.removeItem(LEGACY_SESSION_ADMIN_BACKUP_KEY);
-  } catch {
-    /* ignore */
+export async function clearAdminCredentialBackups(): Promise<void> {
+  stageAuthSecret(APEX_TOKEN_ADMIN_KEY, null);
+  stageAuthSecret(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY, null);
+  stageAuthSecret(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY, null);
+  if (typeof sessionStorage !== "undefined") {
+    try {
+      sessionStorage.removeItem(LEGACY_SESSION_ADMIN_BACKUP_KEY);
+    } catch {
+      /* ignore */
+    }
   }
+  await flushAuthSecrets();
 }
 
 export function getToken(): string | null {
-  if (typeof localStorage === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return readAuthSecret(TOKEN_KEY);
 }
 
-export function setToken(token: string): void {
-  if (typeof localStorage === "undefined") return;
-  localStorage.setItem(TOKEN_KEY, token);
+export function getSessionToken(): string | null {
+  return readAuthSecret(APEX_SESSION_TOKEN_KEY);
 }
 
-/** Server AuthSession id + optional refresh (silent renewal); paired with JWT for API. */
-export const APEX_REFRESH_TOKEN_KEY = "apex_refresh_token";
+export function getRefreshToken(): string | null {
+  return readAuthSecret(APEX_REFRESH_TOKEN_KEY);
+}
+
+export async function setToken(token: string): Promise<void> {
+  stageAuthSecret(TOKEN_KEY, token);
+  await flushAuthSecrets();
+}
+
+export async function removeStoredAccessToken(): Promise<void> {
+  stageAuthSecret(TOKEN_KEY, null);
+  await flushAuthSecrets();
+}
 
 /** Persist server session id returned from login / verify-email alongside JWT. */
-export function persistSessionTokenFromAuthPayload(payload: {
+export async function persistSessionTokenFromAuthPayload(payload: {
   sessionToken?: string;
   refreshToken?: string;
-}): void {
-  if (typeof localStorage === "undefined") return;
+}): Promise<void> {
   const isFullClear = payload != null && Object.keys(payload).length === 0;
 
   const s =
     typeof payload.sessionToken === "string" ? payload.sessionToken.trim() : "";
-  if (s) localStorage.setItem(APEX_SESSION_TOKEN_KEY, s);
+  if (s) stageAuthSecret(APEX_SESSION_TOKEN_KEY, s);
   else if ("sessionToken" in payload || isFullClear)
-    localStorage.removeItem(APEX_SESSION_TOKEN_KEY);
+    stageAuthSecret(APEX_SESSION_TOKEN_KEY, null);
 
   const r =
     typeof payload.refreshToken === "string" ? payload.refreshToken.trim() : "";
-  if (r) localStorage.setItem(APEX_REFRESH_TOKEN_KEY, r);
+  if (r) stageAuthSecret(APEX_REFRESH_TOKEN_KEY, r);
   else if ("refreshToken" in payload || isFullClear)
-    localStorage.removeItem(APEX_REFRESH_TOKEN_KEY);
+    stageAuthSecret(APEX_REFRESH_TOKEN_KEY, null);
+
+  await flushAuthSecrets();
 }
 
-export function clearToken(): void {
-  if (typeof localStorage === "undefined") return;
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(APEX_SESSION_TOKEN_KEY);
-  localStorage.removeItem(APEX_REFRESH_TOKEN_KEY);
-  clearAdminCredentialBackups();
+export async function clearToken(): Promise<void> {
+  stageAuthSecret(TOKEN_KEY, null);
+  stageAuthSecret(APEX_SESSION_TOKEN_KEY, null);
+  stageAuthSecret(APEX_REFRESH_TOKEN_KEY, null);
+  stageAuthSecret(APEX_TOKEN_ADMIN_KEY, null);
+  stageAuthSecret(APEX_SESSION_TOKEN_ADMIN_BACKUP_KEY, null);
+  stageAuthSecret(APEX_REFRESH_TOKEN_ADMIN_BACKUP_KEY, null);
+  if (typeof sessionStorage !== "undefined") {
+    try {
+      sessionStorage.removeItem(LEGACY_SESSION_ADMIN_BACKUP_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+  await flushAuthSecrets();
   // Same-tab storage changes do not fire `storage` events; AuthContext listens for this to sync
   // hasTokenState and clear cached session data (see contexts/AuthContext.tsx).
   if (typeof window !== "undefined") {

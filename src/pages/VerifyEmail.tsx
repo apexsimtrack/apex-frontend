@@ -13,7 +13,11 @@ import {
 } from "@/lib/validation/authPages";
 import PageMeta from "@/components/PageMeta";
 import { COMPANY_NAME } from "@/lib/siteMeta";
-import { persistSessionTokenFromAuthPayload } from "@/auth/token";
+import {
+  persistSessionTokenFromAuthPayload,
+  removeStoredAccessToken,
+  setToken,
+} from "@/auth/token";
 import VerifyEmailWelcomePanel from "./verify-email/VerifyEmailWelcomePanel";
 import VerifyEmailFormCard from "./verify-email/VerifyEmailFormCard";
 import VerifyEmailHelpStrip from "./verify-email/VerifyEmailHelpStrip";
@@ -75,8 +79,8 @@ export default function VerifyEmail() {
       const data = await verifyEmail(email, trimmedCode);
       const token = data.accessToken ?? data.token;
       if (token && typeof token === "string") {
-        localStorage.setItem("apex_token", token);
-        persistSessionTokenFromAuthPayload(data);
+        await setToken(token);
+        await persistSessionTokenFromAuthPayload(data);
         sessionStorage.removeItem(PENDING_VERIFY_KEY);
         try {
           await queryClient.fetchQuery({
@@ -89,8 +93,8 @@ export default function VerifyEmail() {
             "/profile",
           );
         } catch (meErr) {
-          localStorage.removeItem("apex_token");
-          persistSessionTokenFromAuthPayload({});
+          await removeStoredAccessToken();
+          await persistSessionTokenFromAuthPayload({});
           sessionStorage.setItem(PENDING_VERIFY_KEY, email);
           window.dispatchEvent(new Event("apex:auth"));
           form.setError("root", {
