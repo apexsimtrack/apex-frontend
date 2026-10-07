@@ -132,7 +132,7 @@ export default function LogSessionSheet({
               "pb-[max(2rem,env(safe-area-inset-bottom,0px))]",
               appModalSheetTopRadiusClassName,
               "border-t border-apex-outline-variant/15 bg-apex-background text-apex-on-surface",
-              "outline-none",
+              "[outline:none] focus:[outline:none] focus-visible:[outline:none]",
               "data-[state=open]:animate-in data-[state=closed]:animate-out",
               "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
               "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",

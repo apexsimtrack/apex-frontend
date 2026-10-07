@@ -1,12 +1,45 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { footerVersion } from "./scripts/footerVersion.mjs";
 
 const pkg = JSON.parse(
   readFileSync(path.resolve(__dirname, "package.json"), "utf-8"),
 ) as { version?: string };
-const appVersion = pkg.version ?? "1.0.0";
+
+function readCommitCount(): string | null {
+  const git = (args: string) =>
+    execSync(`git ${args}`, {
+      cwd: __dirname,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+
+  try {
+    const shallow = git("rev-parse --is-shallow-repository") === "true";
+    if (shallow && process.env.VERCEL) {
+      try {
+        execSync("git fetch --unshallow", {
+          cwd: __dirname,
+          stdio: "ignore",
+        });
+      } catch {
+        console.warn(
+          "[footer-version] unshallow failed; using package.json version",
+        );
+        return null;
+      }
+    }
+    const count = git("rev-list --count HEAD");
+    return count || null;
+  } catch {
+    return null;
+  }
+}
+
+const appVersion = footerVersion(pkg.version, readCommitCount());
 const gitCommitSha =
   process.env.VERCEL_GIT_COMMIT_SHA?.trim() ||
   process.env.GIT_COMMIT_SHA?.trim() ||

@@ -13,6 +13,7 @@ import { formatCurrentSubscriptionLabel } from "@/features/billing/subscriptionD
 import { useRevenueCat } from "@/features/billing/useRevenueCat";
 import {
   computeAnnualSavingsPercent,
+  localizedZeroPriceLabel,
   packageForInterval,
   pickDefaultInterval,
   resolvePackagesByInterval,
@@ -284,7 +285,14 @@ export default function Pricing() {
           <div className="grid gap-6 md:grid-cols-2 md:items-stretch">
             <FreePlanCard
               name={plans?.free.name ?? "Free"}
-              priceLabel={plans?.free.priceLabel ?? "£0"}
+              priceLabel={
+                isNative
+                  ? localizedZeroPriceLabel(
+                      availablePackages,
+                      plans?.free.priceLabel ?? "£0",
+                    )
+                  : (plans?.free.priceLabel ?? "£0")
+              }
               features={plans?.free.features ?? []}
               isLoggedIn={Boolean(user)}
               isPro={hasProAccess}

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { appOutlineButtonClassName } from "@/components/app-ui/appButtonClasses";
+import { appModalCancelButtonClassName } from "@/components/app-ui/appButtonClasses";
 import { AppBaseModal } from "@/components/app-ui/AppBaseModal";
 import type { Discussion } from "@/lib/api/community";
 
@@ -26,7 +26,7 @@ export default function DiscussionOriginalPostModal({
         <button
           type="button"
           className={cn(
-            appOutlineButtonClassName,
+            appModalCancelButtonClassName,
             "inline-flex items-center justify-center px-4 py-2",
           )}
           onClick={onClose}

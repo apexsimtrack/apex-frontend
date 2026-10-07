@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PUBLIC_SEO_ROUTES } from "./publicSeoRoutes";
 import { PLAN_PRICES, STATIC_SEO, STATIC_SEO_BY_PATH, siteJsonLd } from "./seoMeta";
-import { FAQ_ITEMS } from "../lib/faqData";
+import { FAQ_ITEMS, WEB_FAQ_ITEMS } from "../lib/faqData";
 
 const TITLE_MAX = 60;
 const DESCRIPTION_MAX = 160;
@@ -27,8 +27,19 @@ describe("seoMeta parity", () => {
     expect(faq?.["@type"]).toBe("FAQPage");
     const questions = faq?.mainEntity as { name: string }[];
     expect(questions.map((q) => q.name)).toEqual(
-      FAQ_ITEMS.map((item) => item.question),
+      WEB_FAQ_ITEMS.map((item) => item.question),
     );
+    // Store-only copy (App Store / Google Play) must not leak into public SEO.
+    const mobileOnly = FAQ_ITEMS.filter(
+      (item) => item.platforms && !item.platforms.includes("web"),
+    );
+    expect(mobileOnly.length).toBeGreaterThan(0);
+    const answers = (
+      faq?.mainEntity as { acceptedAnswer: { text: string } }[]
+    ).map((q) => q.acceptedAnswer.text);
+    for (const item of mobileOnly) {
+      expect(answers).not.toContain(item.answer);
+    }
 
     const offers = STATIC_SEO.pricing.jsonLd?.offers as unknown as {
       price: string;

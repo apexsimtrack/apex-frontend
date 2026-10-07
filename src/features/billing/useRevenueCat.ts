@@ -106,6 +106,7 @@ function normalizeNativePackage(
     identifier: rcPackage.identifier,
     productIdentifier: rcPackage.product.identifier,
     priceString: rcPackage.product.priceString,
+    currencyCode: rcPackage.product.currencyCode || null,
     title: rcPackage.product.title,
     rawPackage: rcPackage,
   };

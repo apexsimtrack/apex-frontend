@@ -16,7 +16,7 @@ import type { ProfileEditFormValues } from "@/lib/validation/profileEdit";
 import { cn } from "@/lib/utils";
 import {
   appInputClassName,
-  appOutlineButtonClassName,
+  appModalCancelButtonClassName,
   appPrimaryButtonClassName,
 } from "@/components/app-ui/appButtonClasses";
 import { AppBaseModal } from "@/components/app-ui/AppBaseModal";
@@ -66,7 +66,7 @@ export default function ProfileEditModal({
           <button
             type="button"
             className={cn(
-              appOutlineButtonClassName,
+              appModalCancelButtonClassName,
               "inline-flex items-center justify-center px-4 py-2",
             )}
             onClick={handleClose}

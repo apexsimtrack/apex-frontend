@@ -50,8 +50,10 @@ import type { ManualActivityRequest } from "@/lib/api/manualAndUpload";
 import type { ManualActivityEditInitialData } from "@/lib/sessionEditInitialData";
 import { useManualActivityFormSync } from "@/features/manual-activity/hooks/useManualActivityFormSync";
 import {
+  acceptSectorCountText,
   createManualActivityFormSchema,
   isValidSectorTimeFormat,
+  parseSectorCountInput,
   parseSectorTimeToMs,
   MANUAL_CONDITIONS,
   type ManualActivityFormValues,
@@ -450,7 +452,12 @@ export default function ManualActivityForm({
   const stackedLapLayout = useStackedLapLayout();
 
   const sim = form.watch("sim") as ManualActivitySim | "";
-  const sectorCount = Math.max(0, Math.min(64, Number(form.watch("sectorCount")) || 0));
+  const watchedSectorCount = String(form.watch("sectorCount") ?? "");
+  const parsedSectorCount = parseSectorCountInput(watchedSectorCount);
+  // An emptied field keeps the previous columns until a new 0–64 count is entered.
+  const lastValidSectorCountRef = useRef(parsedSectorCount ?? 3);
+  if (parsedSectorCount != null) lastValidSectorCountRef.current = parsedSectorCount;
+  const sectorCount = parsedSectorCount ?? lastValidSectorCountRef.current;
   const sessionKind = form.watch("manualSessionKind");
   const conditions = form.watch("conditions");
   const lapsWatch = useWatch({ control: form.control, name: "laps" });
@@ -565,17 +572,21 @@ export default function ManualActivityForm({
     remove(index);
   }
 
-  function changeSectorCount(nextCount: number) {
-    if (initialData?.sectorLayoutLocked) return;
+  function changeSectorCount(nextCount: number): boolean {
+    if (initialData?.sectorLayoutLocked) return false;
     const currentCount = sectorCount;
     if (
       nextCount < currentCount &&
       form
         .getValues("laps")
-        .some((row) => row.sectors.slice(nextCount).some((value) => value.trim()))
+        .some((row) =>
+          row.sectors
+            .slice(nextCount)
+            .some((value) => String(value ?? "").trim()),
+        )
     ) {
       if (!window.confirm("Reducing the sector count will discard removed sector values. Continue?")) {
-        return;
+        return false;
       }
     }
     form.setValue("sectorCount", String(nextCount), { shouldDirty: true, shouldValidate: true });
@@ -587,6 +598,7 @@ export default function ManualActivityForm({
       );
       syncTotalFromSectors(index);
     });
+    return true;
   }
 
   const {
@@ -1232,34 +1244,45 @@ export default function ManualActivityForm({
                     <input
                       {...field}
                       id="sectorCount"
-                      type="number"
-                      min={0}
-                      max={64}
+                      type="text"
                       inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={2}
                       disabled={
                         isSubmitting ||
                         initialData?.sectorLayoutLocked === true
                       }
                       className={INPUT_CLASS}
                       onChange={(event) => {
-                        const raw = event.target.value;
-                        // Keep the controlled input empty while the user
-                        // backspaces. Applying 0 here can open the destructive
-                        // sector-removal confirmation and make the field seem
-                        // stuck at its previous value.
-                        if (raw === "") {
-                          field.onChange(event);
+                        const current = String(field.value ?? "");
+                        const next = acceptSectorCountText(event.target.value);
+                        if (next == null) {
+                          event.target.value = current;
                           return;
                         }
-                        const value = Number(raw);
+                        if (next === "") {
+                          field.onChange("");
+                          return;
+                        }
+                        if (!changeSectorCount(Number(next))) {
+                          event.target.value = current;
+                        }
+                      }}
+                      onBlur={() => {
+                        field.onBlur();
                         if (
-                          Number.isInteger(value) &&
-                          value >= 0 &&
-                          value <= 64
+                          parseSectorCountInput(
+                            String(form.getValues("sectorCount") ?? ""),
+                          ) == null
                         ) {
-                          changeSectorCount(value);
-                        } else {
-                          field.onChange(event);
+                          form.setValue(
+                            "sectorCount",
+                            String(lastValidSectorCountRef.current),
+                            {
+                              shouldDirty: true,
+                              shouldValidate: form.formState.isSubmitted,
+                            },
+                          );
                         }
                       }}
                     />

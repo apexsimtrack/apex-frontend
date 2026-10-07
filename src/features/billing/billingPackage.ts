@@ -15,6 +15,7 @@ export type BillingPackage =
       identifier: string;
       productIdentifier: string;
       priceString: string | null;
+      currencyCode: string | null;
       title: string | null;
       rawPackage: NativeRevenueCatPackage;
     };

@@ -2,7 +2,7 @@
  * Static public SEO copy shared by React pages and the Vercel middleware.
  * No `@/` imports: the edge bundle resolves relative paths only.
  */
-import { FAQ_ITEMS } from "../lib/faqData";
+import { WEB_FAQ_ITEMS } from "../lib/faqData";
 import {
   COMPANY_NAME,
   DEFAULT_OG_IMAGE_PATH,
@@ -93,7 +93,7 @@ export const STATIC_SEO = {
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: FAQ_ITEMS.map((item) => ({
+      mainEntity: WEB_FAQ_ITEMS.map((item) => ({
         "@type": "Question",
         name: item.question,
         acceptedAnswer: {

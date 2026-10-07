@@ -26,6 +26,23 @@ export type ManualCondition = "DRY" | "WET" | "MIXED";
 const SECTOR_FORMAT_MSG =
   "Use ss.mmm (e.g. 26.452) or m:ss.mmm — three-digit milliseconds.";
 
+export const MANUAL_SECTOR_COUNT_MAX = 64;
+
+/** 64 is two digits. A third digit, or any value above 64, is not a legal draft. */
+export function acceptSectorCountText(raw: string): string | null {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length > 2) return null;
+  if (digits === "") return "";
+  if (Number(digits) > MANUAL_SECTOR_COUNT_MAX) return null;
+  return digits;
+}
+
+export function parseSectorCountInput(raw: string): number | null {
+  const accepted = acceptSectorCountText(raw);
+  if (accepted == null || accepted === "") return null;
+  return Number(accepted);
+}
+
 /**
  * Parse a frontend-only sector time (`s1`/`s2`/`s3`) to milliseconds.
  *
@@ -118,8 +135,8 @@ export function createManualActivityFormSchema(
       }
 
       // Sector-time format validation (optional fields; empty is OK).
-      const count = Number(data.sectorCount);
-      if (!Number.isInteger(count) || count < 0 || count > 64) {
+      const count = parseSectorCountInput(data.sectorCount);
+      if (count == null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Sector count must be an integer from 0 to 64.",
@@ -127,6 +144,7 @@ export function createManualActivityFormSchema(
         });
       }
       data.laps.forEach((row, i) => {
+        if (count == null) return;
         if (row.sectors.length !== count) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,

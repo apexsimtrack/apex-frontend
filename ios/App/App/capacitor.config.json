@@ -16,6 +16,7 @@
 		}
 	},
 	"packageClassList": [
+		"SecureStorage",
 		"AppPlugin",
 		"CAPBrowserPlugin",
 		"KeyboardPlugin",

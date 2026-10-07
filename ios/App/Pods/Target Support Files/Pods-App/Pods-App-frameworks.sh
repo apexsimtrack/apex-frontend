@@ -176,6 +176,7 @@ code_sign_if_enabled() {
 }
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
+  install_framework "${BUILT_PRODUCTS_DIR}/AparajitaCapacitorSecureStorage/AparajitaCapacitorSecureStorage.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/Capacitor/Capacitor.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorApp/CapacitorApp.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorBrowser/CapacitorBrowser.framework"
@@ -183,11 +184,13 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorKeyboard/CapacitorKeyboard.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorSplashScreen/CapacitorSplashScreen.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorStatusBar/CapacitorStatusBar.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/KeychainSwift/KeychainSwift.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/PurchasesHybridCommon/PurchasesHybridCommon.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RevenueCat/RevenueCat.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RevenuecatPurchasesCapacitor/RevenuecatPurchasesCapacitor.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
+  install_framework "${BUILT_PRODUCTS_DIR}/AparajitaCapacitorSecureStorage/AparajitaCapacitorSecureStorage.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/Capacitor/Capacitor.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorApp/CapacitorApp.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorBrowser/CapacitorBrowser.framework"
@@ -195,6 +198,7 @@ if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorKeyboard/CapacitorKeyboard.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorSplashScreen/CapacitorSplashScreen.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/CapacitorStatusBar/CapacitorStatusBar.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/KeychainSwift/KeychainSwift.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/PurchasesHybridCommon/PurchasesHybridCommon.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RevenueCat/RevenueCat.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RevenuecatPurchasesCapacitor/RevenuecatPurchasesCapacitor.framework"

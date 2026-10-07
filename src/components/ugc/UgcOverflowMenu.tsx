@@ -18,7 +18,7 @@ import {
   appDropdownDangerItemClassName,
   appDropdownItemClassName,
   appDestructiveButtonClassName,
-  appOutlineButtonClassName,
+  appModalCancelButtonClassName,
   appPrimaryButtonClassName,
 } from "@/components/app-ui/appButtonClasses";
 import { cn } from "@/lib/utils";
@@ -242,7 +242,7 @@ export default function UgcOverflowMenu({
           <>
             <button
               type="button"
-              className={cn(appOutlineButtonClassName, "px-4 py-2")}
+              className={cn(appModalCancelButtonClassName, "px-4 py-2")}
               disabled={pending}
               onClick={() => setConfirm(null)}
             >
@@ -269,7 +269,7 @@ export default function UgcOverflowMenu({
           <>
             <button
               type="button"
-              className={cn(appOutlineButtonClassName, "px-4 py-2")}
+              className={cn(appModalCancelButtonClassName, "px-4 py-2")}
               disabled={pending}
               onClick={() => setConfirm(null)}
             >
@@ -297,7 +297,7 @@ export default function UgcOverflowMenu({
           <>
             <button
               type="button"
-              className={cn(appOutlineButtonClassName, "px-4 py-2")}
+              className={cn(appModalCancelButtonClassName, "px-4 py-2")}
               disabled={reportMutation.isPending}
               onClick={closeReport}
             >
