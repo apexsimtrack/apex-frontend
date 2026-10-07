@@ -3,7 +3,7 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "@/lib/utils";
 import {
-  appOutlineButtonClassName,
+  appModalCancelButtonClassName,
   appPrimaryButtonClassName,
 } from "@/components/app-ui/appButtonClasses";
 import {
@@ -127,7 +127,7 @@ const AlertDialogCancel = React.forwardRef<
   <AlertDialogPrimitive.Cancel
     ref={ref}
     className={cn(
-      appOutlineButtonClassName,
+      appModalCancelButtonClassName,
       "mt-2 inline-flex items-center justify-center px-4 py-2 sm:mt-0",
       className,
     )}

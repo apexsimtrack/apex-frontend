@@ -1,0 +1,1 @@
+import{g as n}from"./sim-DXLupxXZ.js";function a(t){return n(t)}function m(t){const r=(t??"").toString().trim();if(!r)return"—";const e=r.replace(/[-_]+/g," ").trim();return e?e.split(/\s+/).filter(Boolean).map(i=>i.charAt(0).toUpperCase()+i.slice(1).toLowerCase()).join(" "):"—"}export{a as f,m as t};

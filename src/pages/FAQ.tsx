@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  Cpu,
   Database,
   HelpCircle,
   Info,
@@ -23,44 +24,57 @@ import { appPrimaryButtonClassName } from "@/components/app-ui/appButtonClasses"
 import {
   FAQ_CATEGORY_ORDER,
   FAQ_ITEMS,
+  faqPlatformFromCapacitor,
   filterFaqItems,
+  filterFaqItemsForPlatform,
   groupFaqByCategory,
   type FaqItem,
 } from "@/lib/faqData";
 import { STATIC_SEO } from "@/config/seoMeta";
+import { usePlatform } from "@/hooks/usePlatform";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   General: Info,
   "Sessions & Data": Database,
   "Apex Pro": Sparkles,
+  "Apex Agent": Cpu,
   Account: UserCog,
 };
-
-const FILTER_CHIPS = ["All", ...FAQ_CATEGORY_ORDER] as const;
-
-const categoryCounts = Object.fromEntries([
-  ["All", FAQ_ITEMS.length],
-  ...FAQ_CATEGORY_ORDER.map((cat) => [
-    cat,
-    FAQ_ITEMS.filter((item) => item.category === cat).length,
-  ]),
-]) as Record<(typeof FILTER_CHIPS)[number], number>;
 
 export default function FAQ() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { platform } = usePlatform();
+
+  // Platform-scoped entries: store billing copy only in that store's app, etc.
+  const platformItems = useMemo(
+    () => filterFaqItemsForPlatform(FAQ_ITEMS, faqPlatformFromCapacitor(platform)),
+    [platform],
+  );
+
+  const { filterChips, categoryCounts } = useMemo(() => {
+    const counts: Record<string, number> = { All: platformItems.length };
+    for (const cat of FAQ_CATEGORY_ORDER) {
+      counts[cat] = platformItems.filter((item) => item.category === cat).length;
+    }
+    const chips = [
+      "All",
+      ...FAQ_CATEGORY_ORDER.filter((cat) => counts[cat] > 0),
+    ];
+    return { filterChips: chips, categoryCounts: counts };
+  }, [platformItems]);
 
   const filtered = useMemo(() => {
-    const bySearch = filterFaqItems(FAQ_ITEMS, query);
+    const bySearch = filterFaqItems(platformItems, query);
     if (!category) return bySearch;
     return bySearch.filter((item) => item.category === category);
-  }, [query, category]);
+  }, [platformItems, query, category]);
 
   const sections = useMemo(() => groupFaqByCategory(filtered), [filtered]);
 
-  const total = FAQ_ITEMS.length;
+  const total = platformItems.length;
   const shown = filtered.length;
   const showEmpty =
     (query.trim().length > 0 || category !== null) && shown === 0;
@@ -123,8 +137,8 @@ export default function FAQ() {
             )}
           </div>
 
-          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-            {FILTER_CHIPS.map((chip) => {
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            {filterChips.map((chip) => {
               const isAll = chip === "All";
               const isActive = isAll ? category === null : category === chip;
               return (

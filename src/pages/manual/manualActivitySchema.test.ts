@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { manualActivityFormSchema } from "./manualActivitySchema";
+import {
+  acceptSectorCountText,
+  manualActivityFormSchema,
+  parseSectorCountInput,
+} from "./manualActivitySchema";
 
 const EMPTY_FORM = {
   sim: "",
@@ -73,5 +77,18 @@ describe("manualActivityFormSchema", () => {
       laps: [{ lapTime: "1:32.456", sectors: ["20.000", "", "bad", "30.000"] }],
     });
     expect(paths).toContain("laps.0.sectors.2");
+  });
+
+  it("refuses a third digit or a sector count above 64", () => {
+    expect(acceptSectorCountText("399999999")).toBeNull();
+    expect(acceptSectorCountText("399")).toBeNull();
+    expect(acceptSectorCountText("99")).toBeNull();
+    expect(acceptSectorCountText("65")).toBeNull();
+    expect(acceptSectorCountText("64")).toBe("64");
+    expect(acceptSectorCountText("6")).toBe("6");
+    expect(acceptSectorCountText("")).toBe("");
+    expect(parseSectorCountInput("64")).toBe(64);
+    expect(parseSectorCountInput("0")).toBe(0);
+    expect(parseSectorCountInput("99")).toBeNull();
   });
 });

@@ -141,6 +141,28 @@ export function getPackageTitle(
   return rcPackage.title ?? plans?.pro.monthly.name ?? "Apex Pro";
 }
 
+/** Free plan is £0 on the web. On mobile, show 0 in the store's currency. */
+export function localizedZeroPriceLabel(
+  packages: BillingPackage[],
+  fallback: string,
+): string {
+  const currencyCode = packages.find(
+    (pkg): pkg is Extract<BillingPackage, { sdk: "native" }> =>
+      pkg.sdk === "native" && Boolean(pkg.currencyCode),
+  )?.currencyCode;
+  if (!currencyCode) return fallback;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currencyCode,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(0);
+  } catch {
+    return fallback;
+  }
+}
+
 export function priceLabelForCatalogInterval(
   interval: BillingInterval,
   plans: BillingPlansResponse | undefined,

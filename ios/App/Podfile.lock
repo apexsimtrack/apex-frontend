@@ -1,4 +1,7 @@
 PODS:
+  - AparajitaCapacitorSecureStorage (8.0.1):
+    - Capacitor
+    - KeychainSwift (~> 21.0)
   - Capacitor (8.0.2):
     - CapacitorCordova
   - CapacitorApp (8.0.1):
@@ -12,6 +15,7 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (8.0.2):
     - Capacitor
+  - KeychainSwift (21.0.0)
   - PurchasesHybridCommon (18.32.1):
     - RevenueCat (= 5.85.0)
   - RevenueCat (5.85.0)
@@ -20,6 +24,7 @@ PODS:
     - PurchasesHybridCommon (= 18.32.1)
 
 DEPENDENCIES:
+  - "AparajitaCapacitorSecureStorage (from `../../node_modules/.pnpm/@aparajita+capacitor-secure-storage@8.0.1/node_modules/@aparajita/capacitor-secure-storage`)"
   - "Capacitor (from `../../node_modules/.pnpm/@capacitor+ios@8.0.2_@capacitor+core@8.0.2/node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/.pnpm/@capacitor+app@8.0.1_@capacitor+core@8.0.2/node_modules/@capacitor/app`)"
   - "CapacitorBrowser (from `../../node_modules/.pnpm/@capacitor+browser@8.0.3_@capacitor+core@8.0.2/node_modules/@capacitor/browser`)"
@@ -31,10 +36,13 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - KeychainSwift
     - PurchasesHybridCommon
     - RevenueCat
 
 EXTERNAL SOURCES:
+  AparajitaCapacitorSecureStorage:
+    :path: "../../node_modules/.pnpm/@aparajita+capacitor-secure-storage@8.0.1/node_modules/@aparajita/capacitor-secure-storage"
   Capacitor:
     :path: "../../node_modules/.pnpm/@capacitor+ios@8.0.2_@capacitor+core@8.0.2/node_modules/@capacitor/ios"
   CapacitorApp:
@@ -53,6 +61,7 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/.pnpm/@revenuecat+purchases-capacitor@13.4.2_@capacitor+core@8.0.2/node_modules/@revenuecat/purchases-capacitor"
 
 SPEC CHECKSUMS:
+  AparajitaCapacitorSecureStorage: 3a26b600a79edc3833a14afb7cc3ee1b1b13c6d1
   Capacitor: cfc1ce4a70dbc19fdc4e66e17808937088029752
   CapacitorApp: fcd990168c3249d2c5a7ae94920a031d05789e73
   CapacitorBrowser: f42210052d25867e64cda9ee28906ca830835ebe
@@ -60,10 +69,11 @@ SPEC CHECKSUMS:
   CapacitorKeyboard: ad22f33de28070c8e16ecb119084af06915724e2
   CapacitorSplashScreen: 1281f7df4d9b4a72bccab8d03e6b2bbd17dff122
   CapacitorStatusBar: b692a4cf12b3fe3a7b7ece86da62106065d78fdc
+  KeychainSwift: 4a71a45c802fd9e73906457c2dcbdbdc06c9419d
   PurchasesHybridCommon: 02cad5fb69b682309baa3ad4d6dcb7836c1543e0
   RevenueCat: 2dec9f71800de36af31884c3cc73e9ffb4a41786
   RevenuecatPurchasesCapacitor: c2c9c09dee64f0bdb4b0ab642e44086deee0569a
 
-PODFILE CHECKSUM: 368add80c8a4086b3cedc333f59f96edafe53d16
+PODFILE CHECKSUM: acdc7252d7b1ef713cc3bf5e4eee37b441657f60
 
 COCOAPODS: 1.16.2

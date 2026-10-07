@@ -4,7 +4,7 @@ export const appModalOverlayClassName =
   "fixed inset-0 z-[80] bg-apex-background/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0";
 
 export const appModalSurfaceVariants = cva(
-  "fixed z-[80] flex min-h-0 w-full flex-col gap-0 overflow-hidden border border-apex-outline-variant/15 bg-apex-surface-container text-apex-on-surface shadow-lg duration-200 focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+  "fixed z-[80] flex min-h-0 w-full flex-col gap-0 overflow-hidden border border-apex-outline-variant/15 bg-apex-surface-container text-apex-on-surface shadow-lg duration-200 [outline:none] focus:[outline:none] focus-visible:[outline:none] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
   {
     variants: {
       size: {

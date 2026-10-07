@@ -1,0 +1,1 @@
+import{C as a}from"./revenuecat-DixrMhrY.js";import{bI as r}from"./index-LQwBxwGe.js";async function n(o){if(a.isNativePlatform()){await r.open({url:o});return}window.location.assign(o)}export{n as o};

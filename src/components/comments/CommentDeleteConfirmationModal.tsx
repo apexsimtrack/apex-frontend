@@ -1,6 +1,6 @@
 import { AppBaseAlertDialog } from "@/components/app-ui/AppBaseModal";
 import {
-  appOutlineButtonClassName,
+  appModalCancelButtonClassName,
   appPrimaryButtonClassName,
 } from "@/components/app-ui/appButtonClasses";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,7 @@ export default function CommentDeleteConfirmationModal({
             type="button"
             onClick={onCancel}
             className={cn(
-              appOutlineButtonClassName,
+              appModalCancelButtonClassName,
               "inline-flex h-9 items-center justify-center px-4 text-sm",
             )}
           >
@@ -50,7 +50,7 @@ export default function CommentDeleteConfirmationModal({
             onClick={onConfirm}
             className={cn(
               appPrimaryButtonClassName,
-              "inline-flex h-9 items-center justify-center bg-apex-error px-4 text-sm hover:bg-apex-error/90",
+              "inline-flex h-9 items-center justify-center px-4 text-sm",
             )}
           >
             Delete

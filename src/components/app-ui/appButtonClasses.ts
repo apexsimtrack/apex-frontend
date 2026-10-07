@@ -19,10 +19,17 @@ export const appOutlineButtonClassName = cn(
   "disabled:cursor-not-allowed disabled:opacity-40",
 );
 
+/** Modal dismiss. Full outline token so the stroke stays visible on phone screens. */
+export const appModalCancelButtonClassName = cn(
+  "rounded-apex-sm border border-apex-outline-variant text-apex-on-surface",
+  "hover:bg-apex-surface-container transition-colors",
+  "disabled:cursor-not-allowed disabled:opacity-40",
+);
+
 export const appDestructiveButtonClassName = cn(
-  "rounded-apex-sm bg-apex-error font-apex-body text-sm font-bold text-white",
-  "hover:bg-apex-error/90 transition-colors",
-  "disabled:cursor-not-allowed disabled:opacity-60",
+  "rounded-apex-sm bg-apex-primary font-apex-body text-sm font-bold text-white",
+  "hover:bg-apex-primary/90 transition-colors",
+  "disabled:cursor-not-allowed disabled:opacity-40",
 );
 
 export const appInputClassName =
